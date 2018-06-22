@@ -31,6 +31,7 @@ abstract Collection<String> get(String queueName, long offset, long num);
 注：
 评测时的数据存储路径为：/alidata1/race2018/data。
 日志请直接打印在控制台标准输出，可以使用System.out.println，如果使用日志框架，请配置为ConsoleAppender。注意不要把日志输出到Error通道（也即不要使用System.err.println，如果使用日志框架，则不要使用log.error）。评测程序会把控制台标准输出的内容搜集出来，放置在OSS上面供用户排错，但是请不要密集打印日志，单次评测，最多不能超过100M。
+日志下载路径为：http://race2018.oss-cn-beijing.aliyuncs.com/{teamcode}.logs.tgz，只保存最近一次任务的日志。
 
 
 ## 4.参赛方法说明
@@ -42,7 +43,11 @@ abstract Collection<String> get(String queueName, long offset, long num);
 
 
 ## 4. 测试环境描述
-测试环境为4c8g的ECS，限定使用的最大JVM大小为4GB(-Xmx4g)。带一块500G左右大小的SSD磁盘。
+测试环境为4c8g的ECS，限定使用的最大JVM大小为4GB(-Xmx4g)。带一块300G左右大小的SSD磁盘。
+
+SSD性能大致如下：
+iops 1w 左右；块读写能力(一次读写4K以上) 在200MB/s 左右。
+
 
 ## 5. 程序校验逻辑
 
