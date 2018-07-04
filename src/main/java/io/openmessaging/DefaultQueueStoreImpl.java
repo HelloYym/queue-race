@@ -1,33 +1,40 @@
 package io.openmessaging;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import io.openmessaging.config.MessageStoreConfig;
 
-/**
- * 这是一个简单的基于内存的实现，以方便选手理解题意；
- * 实际提交时，请维持包名和类名不变，把方法实现修改为自己的内容；
- */
+import java.util.Collection;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+
 public class DefaultQueueStoreImpl extends QueueStore {
 
+    private final MessageStoreConfig messageStoreConfig;
 
-    public static Collection<byte[]> EMPTY = new ArrayList<byte[]>();
-    Map<String, List<byte[]>> queueMap = new ConcurrentHashMap<String, List<byte[]>>();
+    private final DefaultMessageStore messageStore;
 
-    public synchronized void put(String queueName, byte[] message) {
-        if (!queueMap.containsKey(queueName)) {
-            queueMap.put(queueName, new ArrayList<byte[]>());
-        }
-        queueMap.get(queueName).add(message);
+    private AtomicBoolean shutdown = new AtomicBoolean(false);
+
+    public DefaultQueueStoreImpl() {
+        this.messageStoreConfig = new MessageStoreConfig();
+        this.messageStore = new DefaultMessageStore(messageStoreConfig);
+//        init();
     }
 
-    public synchronized Collection<byte[]> get(String queueName, long offset, long num) {
-        if (!queueMap.containsKey(queueName)) {
-            return EMPTY;
+    private void init() {
+        try {
+            messageStore.start();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        List<byte[]> msgs = queueMap.get(queueName);
-        return msgs.subList((int) offset, offset + num > msgs.size() ? msgs.size() : (int) (offset + num));
+    }
+
+    @Override
+    void put(String queueName, byte[] message) {
+        messageStore.putMessage(queueName, message);
+    }
+
+    @Override
+    Collection<byte[]> get(String queueName, long offset, long num) {
+        return messageStore.getMessage(queueName, offset, num);
     }
 }
