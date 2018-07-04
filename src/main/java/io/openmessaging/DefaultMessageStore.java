@@ -47,7 +47,7 @@ public class DefaultMessageStore {
         }
         msgList.add(msg);
         if (msgList.size() == SparseSize) {
-            queueMsgCache.put(topic, new ArrayList<>(SparseSize));
+//            queueMsgCache.put(topic, new ArrayList<>(SparseSize));
             writeToCommitLog(topic, msgList);
             msgList.clear();
         }
