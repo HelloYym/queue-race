@@ -1,19 +1,11 @@
 package io.openmessaging;
 
-import io.openmessaging.common.LoggerName;
-import io.openmessaging.common.ServiceThread;
 import io.openmessaging.config.MessageStoreConfig;
-import io.openmessaging.config.StorePathConfigHelper;
-import io.openmessaging.utils.StoreUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static io.openmessaging.config.MessageStoreConfig.SparseSize;
 
@@ -25,17 +17,15 @@ import static io.openmessaging.config.MessageStoreConfig.SparseSize;
  */
 public class DefaultMessageStore {
 
-    private static final int MAX_QUEUE_NUM = 1500000;
+    private static final int MAX_QUEUE_NUM = 1100000;
 
     private final MessageStoreConfig messageStoreConfig;
 
     private final CommitLog commitLog;
 
-    private final Object lock = new Object();
+    private final ConcurrentMap<Integer, QueueIndex> queueIndexTable;
 
-    private final ConcurrentMap<String/* topic */, QueueIndex> queueIndexTable;
-
-    private final ConcurrentMap<String/* topic */, List<byte[]>> queueMsgCache;
+    private final ConcurrentMap<Integer, List<byte[]>> queueMsgCache;
 
     public DefaultMessageStore(final MessageStoreConfig messageStoreConfig) {
         this.messageStoreConfig = messageStoreConfig;
@@ -44,18 +34,10 @@ public class DefaultMessageStore {
         this.queueMsgCache = new ConcurrentHashMap<>(MAX_QUEUE_NUM);
     }
 
-    public void start() throws Exception {
-        this.commitLog.start();
-    }
-
-    public void shutdown() {
-        this.commitLog.shutdown();
-    }
-
-    public void putMessage(String topic, byte[] msg) {
+    public void putMessage(int topic, byte[] msg) {
         List<byte[]> msgList = queueMsgCache.get(topic);
         if (msgList == null) {
-            List<byte[]> newList = new ArrayList<>(20);
+            List<byte[]> newList = new ArrayList<>(SparseSize);
             List<byte[]> old = queueMsgCache.putIfAbsent(topic, newList);
             if (old != null) {
                 msgList = old;
@@ -65,13 +47,13 @@ public class DefaultMessageStore {
         }
         msgList.add(msg);
         if (msgList.size() == SparseSize) {
-            queueMsgCache.put(topic, new ArrayList<>(20));
+            queueMsgCache.put(topic, new ArrayList<>(SparseSize));
             writeToCommitLog(topic, msgList);
             msgList.clear();
         }
     }
 
-    public List<byte[]> getMessage(String topic, long offset, long maxMsgNums) {
+    public List<byte[]> getMessage(int topic, long offset, long maxMsgNums) {
         QueueIndex index = queueIndexTable.get(topic);
         List<byte[]> msgList = new ArrayList<>();
         while (maxMsgNums > 0 && index.getIndex((int) offset) != -1) {
@@ -79,11 +61,9 @@ public class DefaultMessageStore {
             int start = (int) offset % SparseSize;
             int end = Math.min(start + (int) maxMsgNums, SparseSize) - 1;
             try {
-                List<byte[]> ans = commitLog.getMessage(fileOffset, start, end);
-                msgList.addAll(ans);
+                msgList.addAll(commitLog.getMessage(fileOffset, start, end));
             } catch (Exception e) {
-                System.out.println(topic + "  -------  " + offset + "  -----------  " + maxMsgNums);
-                System.out.println(fileOffset + "    " + start + "     " + end);
+                e.printStackTrace();
             }
 
             maxMsgNums -= (end - start + 1);
@@ -97,7 +77,7 @@ public class DefaultMessageStore {
         return msgList;
     }
 
-    private void writeToCommitLog(String topic, List<byte[]> msgList) {
+    private void writeToCommitLog(int topic, List<byte[]> msgList) {
         PutMessageResult result = this.commitLog.putMessage(msgList);
         if (result.isOk()) {
             QueueIndex index = queueIndexTable.get(topic);

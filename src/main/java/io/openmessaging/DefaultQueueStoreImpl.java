@@ -17,24 +17,15 @@ public class DefaultQueueStoreImpl extends QueueStore {
     public DefaultQueueStoreImpl() {
         this.messageStoreConfig = new MessageStoreConfig();
         this.messageStore = new DefaultMessageStore(messageStoreConfig);
-//        init();
-    }
-
-    private void init() {
-        try {
-            messageStore.start();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
     void put(String queueName, byte[] message) {
-        messageStore.putMessage(queueName, message);
+        messageStore.putMessage(TopicIdGenerator.getInstance().getId(queueName), message);
     }
 
     @Override
     Collection<byte[]> get(String queueName, long offset, long num) {
-        return messageStore.getMessage(queueName, offset, num);
+        return messageStore.getMessage(TopicIdGenerator.getInstance().getId(queueName), offset, num);
     }
 }

@@ -331,8 +331,8 @@ public class CommitLog {
 
             // 如果当前文件没有足够的空间存储这条消息
             if ((msgLen + END_FILE_MIN_BLANK_LENGTH) > maxBlank) {
-                byte[] buff =new byte[maxBlank];
-                byteBuffer.put(buff, 0, maxBlank);
+                this.resetByteBuffer(this.msgStoreItemMemory, maxBlank);
+                byteBuffer.put(this.msgStoreItemMemory.array(), 0, maxBlank);
                 return new AppendMessageResult(AppendMessageStatus.END_OF_FILE, wroteOffset, maxBlank);
             }
 
