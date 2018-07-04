@@ -47,7 +47,6 @@ public class DefaultMessageStore {
         }
         msgList.add(msg);
         if (msgList.size() == SparseSize) {
-//            queueMsgCache.put(topic, new ArrayList<>(SparseSize));
             writeToCommitLog(topic, msgList);
             msgList.clear();
         }
@@ -82,7 +81,7 @@ public class DefaultMessageStore {
         if (result.isOk()) {
             QueueIndex index = queueIndexTable.get(topic);
             if (null == index) {
-                QueueIndex newIndex = new QueueIndex(SparseSize);
+                QueueIndex newIndex = new QueueIndex();
                 QueueIndex oldIndex = queueIndexTable.putIfAbsent(topic, newIndex);
                 if (oldIndex != null) {
                     index = newIndex;

@@ -3,6 +3,8 @@ package io.openmessaging;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.openmessaging.config.MessageStoreConfig.SparseSize;
+
 /**
  * Created with IntelliJ IDEA.
  * Description:
@@ -14,10 +16,8 @@ public class QueueIndex {
 
     private List<Long> index = new ArrayList<>();
 
-    private int gap;
 
-    public QueueIndex(int gap) {
-        this.gap = gap;
+    public QueueIndex() {
     }
 
     public void putIndex(long offset) {
@@ -25,8 +25,8 @@ public class QueueIndex {
     }
 
     public long getIndex(int offset) {
-        if (offset / gap < index.size())
-            return index.get(offset / gap);
+        if (offset / SparseSize < index.size())
+            return index.get(offset / SparseSize);
         else
             return -1;
     }
