@@ -29,7 +29,6 @@ public class CommitLog {
 
     private final AppendMessageCallback appendMessageCallback;
 
-
     //映射文件名
     private static AtomicInteger filePath = new AtomicInteger(0);
 
