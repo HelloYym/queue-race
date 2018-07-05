@@ -1,15 +1,13 @@
 package io.openmessaging;
 
-import io.openmessaging.common.LoggerName;
 import io.openmessaging.common.UtilAll;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import static jdk.nashorn.internal.runtime.regexp.joni.Config.log;
 
 /**
  * Created by IntelliJ IDEA.
@@ -19,8 +17,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 
 public class MappedFileQueue {
-    private static final Logger log = LoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
-    private static final Logger LOG_ERROR = LoggerFactory.getLogger(LoggerName.STORE_ERROR_LOGGER_NAME);
 
     private static final int DELETE_FILES_BATCH_MAX = 10;
 
@@ -51,12 +47,12 @@ public class MappedFileQueue {
             if (mappedFile != null) {
                 int index = (int) ((offset / this.mappedFileSize) - (mappedFile.getFileFromOffset() / this.mappedFileSize));
                 if (index < 0 || index >= this.mappedFiles.size()) {
-                    LOG_ERROR.warn("Offset for {} not matched. Request offset: {}, index: {}, " +
-                                    "mappedFileSize: {}, mappedFiles count: {}",
-                            mappedFile,
-                            offset,
-                            index,
-                            this.mappedFileSize,
+                    System.out.println("Offset for {} not matched. Request offset: {}, index: {}, " +
+                                    "mappedFileSize: {}, mappedFiles count: {}" +
+                            mappedFile +
+                            offset +
+                            index +
+                            this.mappedFileSize +
                             this.mappedFiles.size());
                 }
 
@@ -66,11 +62,11 @@ public class MappedFileQueue {
                     if (returnFirstOnNotFound) {
                         return mappedFile;
                     }
-                    LOG_ERROR.warn("findMappedFileByOffset failure. ", e);
+                    System.out.println("findMappedFileByOffset failure. " + e);
                 }
             }
         } catch (Exception e) {
-            log.error("findMappedFileByOffset Exception", e);
+            System.out.println("findMappedFileByOffset Exception " + e);
         }
 
         return null;
@@ -85,7 +81,7 @@ public class MappedFileQueue {
             } catch (IndexOutOfBoundsException e) {
                 //ignore
             } catch (Exception e) {
-                log.error("getFirstMappedFile has exception.", e);
+                e.printStackTrace();
             }
         }
 
@@ -167,7 +163,7 @@ public class MappedFileQueue {
             try {
                 mappedFile = new MappedFile(nextFilePath, this.mappedFileSize, this.isMapped);
             } catch (IOException e) {
-                log.error("create mappedFile exception", e);
+                e.printStackTrace();
             }
 
             /*队列头*/
@@ -198,7 +194,7 @@ public class MappedFileQueue {
             } catch (IndexOutOfBoundsException e) {
                 //continue;
             } catch (Exception e) {
-                log.error("getLastMappedFile has exception.", e);
+                e.printStackTrace();
                 break;
             }
         }
@@ -216,7 +212,7 @@ public class MappedFileQueue {
             } catch (IndexOutOfBoundsException e) {
                 //continue;
             } catch (Exception e) {
-                log.error("getMinOffset has exception.", e);
+                e.printStackTrace();
             }
         }
         return -1;

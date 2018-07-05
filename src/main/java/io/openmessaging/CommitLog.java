@@ -1,15 +1,14 @@
 package io.openmessaging;
 
-import io.openmessaging.common.LoggerName;
 import io.openmessaging.common.ServiceThread;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static jdk.nashorn.internal.runtime.regexp.joni.Config.log;
 
 /**
  * Created by IntelliJ IDEA.
@@ -19,10 +18,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class CommitLog {
 
-    private static final Logger log = LoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
-
     //采用自旋锁
     private final PutMessageSpinLock putMessageLock;
+
     private final MappedFileQueue mappedFileQueue;
 
     private final DefaultMessageStore defaultMessageStore;
@@ -164,7 +162,7 @@ public class CommitLog {
             }
             /*创建文件失败*/
             if (null == mappedFile) {
-                log.error("create mapped file1 error" );
+                System.out.println("create mapped file1 error" );
                 return new PutMessageResult(PutMessageStatus.CREATE_MAPEDFILE_FAILED, null);
             }
 
@@ -176,7 +174,7 @@ public class CommitLog {
                 case END_OF_FILE:
                     mappedFile = this.mappedFileQueue.getLastMappedFile(0);
                     if (null == mappedFile) {
-                        log.error("create mapped file2 error" );
+                        System.out.println("create mapped file2 error" );
                         return new PutMessageResult(PutMessageStatus.CREATE_MAPEDFILE_FAILED, result);
                     }
                     result = mappedFile.appendMessage(msgs, this.appendMessageCallback);
@@ -216,7 +214,7 @@ public class CommitLog {
             }
             /*创建文件失败*/
             if (null == mappedFile) {
-                log.error("create mapped file1 error" );
+                System.out.println("create mapped file1 error" );
                 return new PutMessageResult(PutMessageStatus.CREATE_MAPEDFILE_FAILED, null);
             }
 
@@ -228,7 +226,7 @@ public class CommitLog {
                 case END_OF_FILE:
                     mappedFile = this.mappedFileQueue.getLastMappedFile(0);
                     if (null == mappedFile) {
-                        log.error("create mapped file2 error" );
+                        System.out.println("create mapped file2 error" );
                         return new PutMessageResult(PutMessageStatus.CREATE_MAPEDFILE_FAILED, result);
                     }
                     result = mappedFile.appendMessage(msg, this.appendMessageCallback);
@@ -291,7 +289,7 @@ public class CommitLog {
 
             // 如果消息大小大于最大消息限制
             if (msgLen > this.maxMessageSize) {
-                CommitLog.log.warn("message size exceeded, msg total size: " + msgLen + ", msg body size: " + bodyLength
+                System.out.println("message size exceeded, msg total size: " + msgLen + ", msg body size: " + bodyLength
                         + ", maxMessageSize: " + this.maxMessageSize);
                 return new AppendMessageResult(AppendMessageStatus.MESSAGE_SIZE_EXCEEDED);
             }
@@ -329,7 +327,7 @@ public class CommitLog {
 
             // 如果消息大小大于最大消息限制
             if (msgLen > this.maxMessageSize) {
-                CommitLog.log.warn("message size exceeded, msg total size: " + msgLen + ", msg body size: " + bodyLength
+                System.out.println("message size exceeded, msg total size: " + msgLen + ", msg body size: " + bodyLength
                         + ", maxMessageSize: " + this.maxMessageSize);
                 return new AppendMessageResult(AppendMessageStatus.MESSAGE_SIZE_EXCEEDED);
             }
@@ -361,11 +359,9 @@ public class CommitLog {
         @Override
         public void shutdown() {
             this.stopped = true;
-            log.info("shutdown thread " + this.getServiceName() + " interrupt ");
         }
 
         public void run() {
-            CommitLog.log.info(this.getServiceName() + " service started");
 
             while (!this.isStopped()) {
 
@@ -392,10 +388,10 @@ public class CommitLog {
 
                     long past = System.currentTimeMillis() - begin;
                     if (past > 500) {
-                        log.info("Flush data to disk costs {} ms", past);
+                        System.out.println("Flush data to disk costs" + past + " ms ");
                     }
                 } catch (Throwable e) {
-                    CommitLog.log.warn(this.getServiceName() + " service has exception. ", e);
+                    e.printStackTrace();
                 }
             }
 
@@ -403,10 +399,8 @@ public class CommitLog {
             boolean result = false;
             for (int i = 0; i < RETRY_TIMES_OVER && !result; i++) {
                 result = CommitLog.this.mappedFileQueue.flush(0);
-                CommitLog.log.info(this.getServiceName() + " service shutdown, retry " + (i + 1) + " times " + (result ? "OK" : "Not OK"));
             }
 
-            CommitLog.log.info(this.getServiceName() + " service end");
         }
 
         @Override
