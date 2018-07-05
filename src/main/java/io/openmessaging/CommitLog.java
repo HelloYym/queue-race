@@ -5,9 +5,11 @@ import io.openmessaging.common.ServiceThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by IntelliJ IDEA.
@@ -30,10 +32,13 @@ public class CommitLog {
     private final AppendMessageCallback appendMessageCallback;
 
 
+    //映射文件名
+    private static AtomicInteger filePath = new AtomicInteger(0);
+
 
     public CommitLog(final DefaultMessageStore defaultMessageStore) {
 
-        this.mappedFileQueue = new MappedFileQueue(defaultMessageStore.getMessageStoreConfig().getStorePathCommitLog(),
+        this.mappedFileQueue = new MappedFileQueue(defaultMessageStore.getMessageStoreConfig().getStorePathCommitLog() + File.separator + filePath.getAndIncrement(),
                 defaultMessageStore.getMessageStoreConfig().getMapedFileSizeCommitLog(), true);
 
         this.defaultMessageStore = defaultMessageStore;
