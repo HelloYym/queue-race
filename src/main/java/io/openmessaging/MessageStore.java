@@ -72,12 +72,4 @@ public interface MessageStore {
      * @return total number.
      */
     long getMessageTotalInQueue(final String topic);
-
-    /**
-     * Get consume queue of the topic/queue.
-     *
-     * @param topic Topic.
-     * @return Consume queue.
-     */
-    ConsumeQueue getConsumeQueue(String topic);
 }

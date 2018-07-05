@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public abstract class ServiceThread implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.COMMON_LOGGER_NAME);
 
-    private static final long JOIN_TIME = 90 * 1000;
+    private static final int JOIN_TIME = 90 * 1000;
 
     protected final Thread thread;
     protected final CountDownLatch2 waitPoint = new CountDownLatch2(1);
@@ -50,13 +50,9 @@ public abstract class ServiceThread implements Runnable {
                 this.thread.interrupt();
             }
 
-            long beginTime = System.currentTimeMillis();
             if (!this.thread.isDaemon()) {
                 this.thread.join(this.getJointime());
             }
-            long eclipseTime = System.currentTimeMillis() - beginTime;
-            log.info("join thread " + this.getServiceName() + " eclipse time(ms) " + eclipseTime + " "
-                    + this.getJointime());
         } catch (InterruptedException e) {
             log.error("Interrupted", e);
         }

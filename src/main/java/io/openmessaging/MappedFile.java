@@ -1,11 +1,8 @@
 package io.openmessaging;
 
 import io.openmessaging.common.LoggerName;
-import io.openmessaging.common.UtilAll;
-import io.openmessaging.config.FlushDiskType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.nio.ch.DirectBuffer;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -17,7 +14,6 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -374,33 +370,6 @@ public class MappedFile extends ReferenceResource {
         TOTAL_MAPPED_FILES.decrementAndGet();
         log.info("unmap file[REF:" + currentRef + "] " + this.fileName + " OK");
         return true;
-    }
-
-    public boolean destroy(final long intervalForcibly) {
-        this.shutdown(intervalForcibly);
-
-        if (this.isCleanupOver()) {
-            try {
-                this.fileChannel.close();
-                log.info("close file channel " + this.fileName + " OK");
-
-                long beginTime = System.currentTimeMillis();
-                boolean result = this.file.delete();
-                log.info("delete file[REF:" + this.getRefCount() + "] " + this.fileName
-                        + (result ? " OK, " : " Failed, ") + "W:" + this.getWrotePosition() + " M:"
-                        + this.getFlushedPosition() + ", "
-                        + UtilAll.computeEclipseTimeMilliseconds(beginTime));
-            } catch (Exception e) {
-                log.warn("close file channel " + this.fileName + " Failed. ", e);
-            }
-
-            return true;
-        } else {
-            log.warn("destroy mapped file[REF:" + this.getRefCount() + "] " + this.fileName
-                    + " Failed. cleanupOver: " + this.cleanupOver);
-        }
-
-        return false;
     }
 
     public int getWrotePosition() {

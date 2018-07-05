@@ -13,24 +13,24 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class TopicIdGenerator {
 
-    private static TopicIdGenerator instance = new TopicIdGenerator(1100000);
-
-    private AtomicInteger id = new AtomicInteger();
-
-    private Map<String, Integer> topicIdMap;
-
-    private TopicIdGenerator(int capacity) {
-        topicIdMap = new ConcurrentHashMap<>(capacity);
-    }
-
-    public static TopicIdGenerator getInstance() {
-        return instance;
-    }
-
-    public int getId(String topic) {
-        if (!topicIdMap.containsKey(topic)) {
-            topicIdMap.put(topic, id.getAndIncrement());
-        }
-        return topicIdMap.get(topic);
-    }
+//    private static TopicIdGenerator instance = new TopicIdGenerator(10);
+//
+//    private AtomicInteger id = new AtomicInteger();
+//
+//    private Map<String, Integer> topicIdMap;
+//
+//    private TopicIdGenerator(int capacity) {
+//        topicIdMap = new ConcurrentHashMap<>(capacity);
+//    }
+//
+//    public static TopicIdGenerator getInstance() {
+//        return instance;
+//    }
+//
+//    public int getId(String topic) {
+//        if (!topicIdMap.containsKey(topic)) {
+//            topicIdMap.put(topic, id.getAndIncrement());
+//        }
+//        return topicIdMap.get(topic);
+//    }
 }

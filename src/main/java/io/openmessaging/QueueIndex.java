@@ -14,19 +14,20 @@ import static io.openmessaging.config.MessageStoreConfig.SparseSize;
  */
 public class QueueIndex {
 
-    private List<Long> index = new ArrayList<>();
+    private long[] index = new long[2100 / SparseSize];
 
+    private int size = 0;
 
     public QueueIndex() {
     }
 
     public void putIndex(long offset) {
-        index.add(offset);
+        index[size ++] = offset;
     }
 
     public long getIndex(int offset) {
-        if (offset / SparseSize < index.size())
-            return index.get(offset / SparseSize);
+        if (offset / SparseSize < size)
+            return index[offset / SparseSize];
         else
             return -1;
     }

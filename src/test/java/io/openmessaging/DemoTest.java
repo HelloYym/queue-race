@@ -16,13 +16,13 @@ public class DemoTest {
     public static void main(String[] args) throws Exception {
         //评测相关配置
         //发送阶段的发送数量，也即发送阶段必须要在规定时间内把这些消息发送完毕方可
-        int msgNum  = 12345678;
+        int msgNum  = 2000000009;
         //发送阶段的最大持续时间，也即在该时间内，如果消息依然没有发送完毕，则退出评测
-        int sendTime = 10 * 60 * 1000;
+        int sendTime = 60 * 60 * 1000;
         //消费阶段的最大持续时间，也即在该时间内，如果消息依然没有消费完毕，则退出评测
         int checkTime = 60 * 60 * 1000;
         //队列的数量
-        int queueNum = 10000;
+        int queueNum = 1000000;
         //正确性检测的次数
         int checkNum = 1000;
         //消费阶段的总队列数量
@@ -136,7 +136,7 @@ public class DemoTest {
                     String queueName = "Queue-" + count % queueCounter.size();
 //                    加锁，保证每个队列put的顺序一致性
                     synchronized (queueCounter.get(queueName)) {
-                        queueStore.put(queueName, String.valueOf(queueCounter.get(queueName).getAndIncrement()).getBytes());
+                        queueStore.put(queueName, String.valueOf(queueCounter.get(queueName).getAndIncrement() + "&123456789012345678901234567890123456789012345").getBytes());
                     }
                 } catch (Throwable t) {
                     t.printStackTrace();
@@ -173,7 +173,7 @@ public class DemoTest {
                     if (index < 0) index = 0;
                     Collection<byte[]> msgs = queueStore.get(queueName, index, 10);
                     for (byte[] msg : msgs) {
-                        if (!new String(msg).equals(String.valueOf(index++))) {
+                        if (!new String(msg).split("&")[0].equals(String.valueOf(index++))) {
                             System.out.println(queueName + "     " +  new String(msg) + "    " + (index-1));
                             System.out.println("Check error   " + queueName);
                             System.exit(-1);
@@ -217,7 +217,7 @@ public class DemoTest {
                         if (msgs != null && msgs.size() > 0) {
                             pullOffsets.get(queueName).getAndAdd(msgs.size());
                             for (byte[] msg : msgs) {
-                                if (!new String(msg).equals(String.valueOf(index++))) {
+                                if (!new String(msg).split("&")[0].equals(String.valueOf(index++))) {
                                     System.out.println(queueName + "     " +  new String(msg) + "    " + (index-1));
                                     System.out.println("Check error  " + queueName);
                                     System.exit(-1);

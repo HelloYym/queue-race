@@ -23,9 +23,9 @@ public class DefaultMessageStore {
 
     private final CommitLog commitLog;
 
-    private final ConcurrentMap<Integer, QueueIndex> queueIndexTable;
+    private final ConcurrentMap<String, QueueIndex> queueIndexTable;
 
-    private final ConcurrentMap<Integer, List<byte[]>> queueMsgCache;
+    private final ConcurrentMap<String, List<byte[]>> queueMsgCache;
 
     public DefaultMessageStore(final MessageStoreConfig messageStoreConfig) {
         this.messageStoreConfig = messageStoreConfig;
@@ -34,8 +34,7 @@ public class DefaultMessageStore {
         this.queueMsgCache = new ConcurrentHashMap<>(MAX_QUEUE_NUM);
     }
 
-    public void putMessage(int topic, byte[] msg) {
-//        System.out.println(topic + "  -------  " + new String(msg));
+    public void putMessage(String topic, byte[] msg) {
         List<byte[]> msgList = queueMsgCache.get(topic);
         if (msgList == null) {
             List<byte[]> newList = new ArrayList<>(SparseSize);
@@ -53,17 +52,16 @@ public class DefaultMessageStore {
         }
     }
 
-    public List<byte[]> getMessage(int topic, long offset, long maxMsgNums) {
-        long off = offset;
-        long nums = maxMsgNums;
+    public List<byte[]> getMessage(String topic, int offset, int maxMsgNums) {
+        int off = offset;
+        int nums = maxMsgNums;
         QueueIndex index = queueIndexTable.get(topic);
         List<byte[]> msgList = new ArrayList<>();
-        while (nums > 0 && index.getIndex((int) off) != -1) {
-            long fileOffset = index.getIndex((int) off);
-            int start = (int) off % SparseSize;
-            int end = Math.min(start + (int) nums, SparseSize) - 1;
+        while (nums > 0 && index.getIndex(off) != -1) {
+            int start = off % SparseSize;
+            int end = Math.min(start + nums, SparseSize) - 1;
             try {
-                msgList.addAll(commitLog.getMessage(fileOffset, start, end));
+                msgList.addAll(commitLog.getMessage(index.getIndex(off), start, end));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -74,14 +72,14 @@ public class DefaultMessageStore {
 
         List<byte[]> cache = queueMsgCache.get(topic);
         if (nums > 0 && !cache.isEmpty()) {
-            int start = (int) off % SparseSize;
-            int end = Math.min(cache.size(), start + (int) nums);
+            int start =  off % SparseSize;
+            int end = Math.min(cache.size(), start + nums);
             msgList.addAll(cache.subList(start, end));
         }
         return msgList;
     }
 
-    private void writeToCommitLog(int topic, List<byte[]> msgList) {
+    private void writeToCommitLog(String topic, List<byte[]> msgList) {
         PutMessageResult result = this.commitLog.putMessage(msgList);
         if (result.isOk()) {
             QueueIndex index = queueIndexTable.get(topic);

@@ -1,7 +1,5 @@
 package io.openmessaging.config;
 
-import io.openmessaging.ConsumeQueue;
-
 import java.io.File;
 
 /**
@@ -22,11 +20,6 @@ public class MessageStoreConfig {
 
     // CommitLog file size,default is 1G
     private int mapedFileSizeCommitLog = 1024 * 1024 * 1024;
-
-    // ConsumeQueue file size,default is 30W
-//    private int mapedFileSizeConsumeQueue = 300000 * ConsumeQueue.CQ_STORE_UNIT_SIZE;
-
-    private int mapedFileSizeConsumeQueue = 10000 * ConsumeQueue.CQ_STORE_UNIT_SIZE;
 
     // CommitLog flush interval
     // flush data to disk
@@ -56,12 +49,6 @@ public class MessageStoreConfig {
 
     public int getMapedFileSizeCommitLog() {
         return mapedFileSizeCommitLog;
-    }
-
-    public int getMapedFileSizeConsumeQueue() {
-
-        int factor = (int) Math.ceil(this.mapedFileSizeConsumeQueue / (ConsumeQueue.CQ_STORE_UNIT_SIZE * 1.0));
-        return (int) (factor * ConsumeQueue.CQ_STORE_UNIT_SIZE);
     }
 
     public int getSparseSize() {
