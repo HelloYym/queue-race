@@ -78,6 +78,45 @@ public class CommitLog {
     }
 
     //get(offset, 5, 10)的意思是读取当前块中的第5条到第10条记录
+//    public ArrayList<byte[]> getMessage(long offset, int start, int end){
+//        int mappedFileSize = this.defaultMessageStore.getMessageStoreConfig().getMapedFileSizeCommitLog();
+//        MappedFile mappedFile = this.mappedFileQueue.findMappedFileByOffset(offset, offset == 0);
+//
+//        if (mappedFile != null) {
+//            int SparseSize = defaultMessageStore.getMessageStoreConfig().getSparseSize();
+//            int pos = (int) (offset % mappedFileSize);//起始位置
+//
+//            int[] sizeArray = new int[SparseSize];
+//            SelectMappedBufferResult sizeMap;
+//            SelectMappedBufferResult message;
+//            ArrayList<byte[]> msgList = new ArrayList<>();
+//
+//            //取出所有消息的大小，放到数组中
+//            for(int i=0; i<SparseSize; i++){
+//                sizeMap = mappedFile.selectMappedBuffer(pos, 4);
+//                byte[] msg = new byte[sizeMap.getSize()];
+//                sizeMap.getByteBuffer().get(msg, 0, sizeMap.getSize());
+//                sizeArray[i] =byteArrayToInt(msg);
+//
+//                pos = pos + 4;
+//            }
+//
+//            //此时的pos已经是去掉消息大小部分的位置了
+//            for(int i = 0; i < start; i++){
+//                pos = pos + sizeArray[i];
+//            }
+//            //此时pos是start开始要取的位置
+//            for(int i = start; i <= end; i++){
+//                message = mappedFile.selectMappedBuffer(pos, sizeArray[i]);
+//                addMessage(message, msgList);
+//                pos += sizeArray[i];
+//            }
+//
+//            return msgList;
+//
+//        }
+//        return null;
+//    }
     public ArrayList<byte[]> getMessage(long offset, int start, int end){
         int mappedFileSize = this.defaultMessageStore.getMessageStoreConfig().getMapedFileSizeCommitLog();
         MappedFile mappedFile = this.mappedFileQueue.findMappedFileByOffset(offset, offset == 0);
@@ -91,29 +130,28 @@ public class CommitLog {
             SelectMappedBufferResult message;
             ArrayList<byte[]> msgList = new ArrayList<>();
 
-            //取出所有消息的大小，放到数组中
-            for(int i=0; i<SparseSize; i++){
-                sizeMap = mappedFile.selectMappedBuffer(pos, 4);
-                byte[] msg = new byte[sizeMap.getSize()];
-                sizeMap.getByteBuffer().get(msg, 0, sizeMap.getSize());
-                sizeArray[i] =byteArrayToInt(msg);
-
-                pos = pos + 4;
-            }
+            int msgPos = pos + 4 * SparseSize;
 
             //此时的pos已经是去掉消息大小部分的位置了
             for(int i = 0; i < start; i++){
-                pos = pos + sizeArray[i];
+
+                msgPos = msgPos + mappedFile.selectMappedBuffer(pos, 4).getByteBuffer().getInt();
+                pos = pos + 4;
+
             }
             //此时pos是start开始要取的位置
             for(int i = start; i <= end; i++){
-                message = mappedFile.selectMappedBuffer(pos, sizeArray[i]);
+
+                int size = mappedFile.selectMappedBuffer(pos, 4).getByteBuffer().getInt();
+                message = mappedFile.selectMappedBuffer(msgPos, size);
                 addMessage(message, msgList);
-                pos += sizeArray[i];
+
+                msgPos = msgPos + size;
+                pos = pos + 4;
+
             }
 
             return msgList;
-
         }
         return null;
     }
@@ -256,16 +294,16 @@ public class CommitLog {
         private final int maxMessageSize;
 
         private final int SparseSize = defaultMessageStore.getMessageStoreConfig().getSparseSize();
-        private final ByteBuffer msgStoreSizeMemory;//存的是20个消息的大小
+//        private final ByteBuffer msgStoreSizeMemory;//存的是20个消息的大小
         private final ByteBuffer msgStoreItemMemory;//存的是20个消息的内容
 
 
         DefaultAppendMessageCallback(final int size) {
             this.maxMessageSize = size;
 
-            this.msgStoreSizeMemory = ByteBuffer.allocate(SparseSize * 4);
+//            this.msgStoreSizeMemory = ByteBuffer.allocate(SparseSize * 4);
             //最大是4M，如果连续存20个的话 20*60个字节  足够了
-            this.msgStoreItemMemory = ByteBuffer.allocate(size);
+            this.msgStoreItemMemory = ByteBuffer.allocate(0);
         }
 
         private void resetByteBuffer(final ByteBuffer byteBuffer, final int limit){
@@ -276,6 +314,7 @@ public class CommitLog {
         //这个是写一串数据
         @Override
         public AppendMessageResult doAppend(long fileFromOffset, ByteBuffer byteBuffer, int maxBlank, List<byte[]> msgInner) {
+
             long wroteOffset = fileFromOffset + byteBuffer.position();
 
             int bodyLength = 0;
@@ -287,31 +326,25 @@ public class CommitLog {
             final int msgLen = bodyLength + SparseSize * 4;//消息长度
 
             // 如果消息大小大于最大消息限制
-            if (msgLen > this.maxMessageSize) {
-                System.out.println("message size exceeded, msg total size: " + msgLen + ", msg body size: " + bodyLength
-                        + ", maxMessageSize: " + this.maxMessageSize);
-                return new AppendMessageResult(AppendMessageStatus.MESSAGE_SIZE_EXCEEDED);
-            }
+//            if (msgLen > this.maxMessageSize) {
+//                System.out.println("message size exceeded, msg total size: " + msgLen + ", msg body size: " + bodyLength
+//                        + ", maxMessageSize: " + this.maxMessageSize);
+//                return new AppendMessageResult(AppendMessageStatus.MESSAGE_SIZE_EXCEEDED);
+//            }
 
             // 如果当前文件没有足够的空间存储这条消息
-            if ((msgLen + END_FILE_MIN_BLANK_LENGTH) > maxBlank) {
-                this.resetByteBuffer(this.msgStoreItemMemory, maxBlank);
-                byteBuffer.put(this.msgStoreItemMemory.array(), 0, maxBlank);
+            if ((msgLen) > maxBlank) {
+                byte[] bytes = new byte[maxBlank];
+                byteBuffer.put(bytes, 0, maxBlank);
                 return new AppendMessageResult(AppendMessageStatus.END_OF_FILE, wroteOffset, maxBlank);
             }
 
-
-            this.resetByteBuffer(msgStoreSizeMemory, SparseSize * 4);
-            this.resetByteBuffer(msgStoreItemMemory, bodyLength);
-            //放前20个消息的大小和消息
             for(int j = 0; j < msgInner.size(); j++){
-                this.msgStoreSizeMemory.putInt(msgInner.get(j).length);
-                this.msgStoreItemMemory.put(msgInner.get(j));
+                byteBuffer.putInt(msgInner.get(j).length);
             }
-
-            //写进去，献血20个消息的大小，再写消息
-            byteBuffer.put(this.msgStoreSizeMemory.array(), 0, SparseSize * 4);
-            byteBuffer.put(this.msgStoreItemMemory.array(), 0, bodyLength);
+            for(int j = 0; j < msgInner.size(); j++){
+                byteBuffer.put(msgInner.get(j));
+            }
 
             AppendMessageResult result = new AppendMessageResult(AppendMessageStatus.PUT_OK, wroteOffset, msgLen);
             return result;
