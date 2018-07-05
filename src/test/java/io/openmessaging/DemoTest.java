@@ -16,7 +16,7 @@ public class DemoTest {
     public static void main(String[] args) throws Exception {
         //评测相关配置
         //发送阶段的发送数量，也即发送阶段必须要在规定时间内把这些消息发送完毕方可
-        int msgNum  = 1000010;
+        int msgNum  = 12345678;
         //发送阶段的最大持续时间，也即在该时间内，如果消息依然没有发送完毕，则退出评测
         int sendTime = 10 * 60 * 1000;
         //消费阶段的最大持续时间，也即在该时间内，如果消息依然没有消费完毕，则退出评测
@@ -24,7 +24,7 @@ public class DemoTest {
         //队列的数量
         int queueNum = 10000;
         //正确性检测的次数
-        int checkNum = 100;
+        int checkNum = 1000;
         //消费阶段的总队列数量
         int checkQueueNum = 1000;
         //发送的线程数量
@@ -173,9 +173,9 @@ public class DemoTest {
                     if (index < 0) index = 0;
                     Collection<byte[]> msgs = queueStore.get(queueName, index, 10);
                     for (byte[] msg : msgs) {
-//                        System.out.println(Thread.currentThread().getName() + "     " +  new String(msg) + "    " + index);
                         if (!new String(msg).equals(String.valueOf(index++))) {
-                            System.out.println("Check error");
+                            System.out.println(queueName + "     " +  new String(msg) + "    " + (index-1));
+                            System.out.println("Check error   " + queueName);
                             System.exit(-1);
                         }
                     }
@@ -217,9 +217,9 @@ public class DemoTest {
                         if (msgs != null && msgs.size() > 0) {
                             pullOffsets.get(queueName).getAndAdd(msgs.size());
                             for (byte[] msg : msgs) {
-//                                System.out.println(Thread.currentThread().getName() + "     " +  new String(msg) + "    " + index);
                                 if (!new String(msg).equals(String.valueOf(index++))) {
-                                    System.out.println("Check error");
+                                    System.out.println(queueName + "     " +  new String(msg) + "    " + (index-1));
+                                    System.out.println("Check error  " + queueName);
                                     System.exit(-1);
                                 }
                             }
@@ -228,7 +228,7 @@ public class DemoTest {
                         }
                         if (msgs == null || msgs.size() < 10) {
                             if (pullOffsets.get(queueName).get() != offsets.get(queueName).get()) {
-                                System.out.printf("Queue Number Error");
+                                System.out.println("Queue Number Error : " + queueName + "   " + offsets.get(queueName).get());
                                 System.exit(-1);
                             }
                             pullOffsets.remove(queueName);

@@ -35,6 +35,7 @@ public class DefaultMessageStore {
     }
 
     public void putMessage(int topic, byte[] msg) {
+//        System.out.println(topic + "  -------  " + new String(msg));
         List<byte[]> msgList = queueMsgCache.get(topic);
         if (msgList == null) {
             List<byte[]> newList = new ArrayList<>(SparseSize);
@@ -53,25 +54,29 @@ public class DefaultMessageStore {
     }
 
     public List<byte[]> getMessage(int topic, long offset, long maxMsgNums) {
+        long off = offset;
+        long nums = maxMsgNums;
         QueueIndex index = queueIndexTable.get(topic);
         List<byte[]> msgList = new ArrayList<>();
-        while (maxMsgNums > 0 && index.getIndex((int) offset) != -1) {
-            long fileOffset = index.getIndex((int) offset);
-            int start = (int) offset % SparseSize;
-            int end = Math.min(start + (int) maxMsgNums, SparseSize) - 1;
+        while (nums > 0 && index.getIndex((int) off) != -1) {
+            long fileOffset = index.getIndex((int) off);
+            int start = (int) off % SparseSize;
+            int end = Math.min(start + (int) nums, SparseSize) - 1;
             try {
                 msgList.addAll(commitLog.getMessage(fileOffset, start, end));
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            maxMsgNums -= (end - start + 1);
-            offset += (end - start + 1);
+            nums -= (end - start + 1);
+            off += (end - start + 1);
         }
 
         List<byte[]> cache = queueMsgCache.get(topic);
-        if (maxMsgNums > 0 && !cache.isEmpty()) {
-            msgList.addAll(cache.subList(0, Math.min(cache.size(), (int) maxMsgNums - 1)));
+        if (nums > 0 && !cache.isEmpty()) {
+            int start = (int) off % SparseSize;
+            int end = Math.min(cache.size(), start + (int) nums);
+            msgList.addAll(cache.subList(start, end));
         }
         return msgList;
     }
