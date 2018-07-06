@@ -12,7 +12,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class MessageStoreConfig {
     //The root directory in which the log data is kept
-    private String storePathRootDir = "alidata1/race2018/data";
+    private String storePathRootDir = "/alidata1/race2018/data";
 
     //稀疏索引，每存多少个写一个索引
     public static final int SparseSize = 20;//每隔20个存一次
@@ -21,7 +21,7 @@ public class MessageStoreConfig {
 
     public static final int MAX_MESSAGE_NUM_PER_QUEUE = 2200;
 
-    public static final int QUEUE_CACHE_SIZE = (65 + 1) * SparseSize;
+    public static final int QUEUE_CACHE_SIZE = (64) * SparseSize;
 
 
     public static final Lock lock = new ReentrantLock();
