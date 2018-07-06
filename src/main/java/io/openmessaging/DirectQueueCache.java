@@ -17,6 +17,9 @@ import static io.openmessaging.config.MessageStoreConfig.QUEUE_CACHE_SIZE;
 class DirectQueueCache {
 
     private ByteBuffer byteBuffer;
+
+    private ArrayList<byte[]> msgList;
+
     /*是个瓶颈*/
     private byte size = 0;
 
@@ -37,16 +40,22 @@ class DirectQueueCache {
     }
 
     ArrayList<byte[]> readMsgList() {
-        ArrayList<byte[]> msgList = new ArrayList<>();
+
+        if (msgList != null)
+            return msgList;
+
+        msgList = new ArrayList<>();
         byteBuffer.flip();
+
         while (byteBuffer.hasRemaining()) {
             /*读取消息长度*/
-            byte size = byteBuffer.get();
+            byte len = byteBuffer.get();
             /*读取消息体*/
-            byte[] msg = new byte[size];
+            byte[] msg = new byte[len];
             byteBuffer.get(msg);
             msgList.add(msg);
         }
+
         return msgList;
     }
 
