@@ -15,7 +15,7 @@ public class MessageStoreConfig {
     private String storePathRootDir = "alidata1/race2018/data";
 
     //稀疏索引，每存多少个写一个索引
-    public static final int SparseSize = 16;//每隔20个存一次
+    public static final int SparseSize = 20;//每隔20个存一次
 
     public static final int MAX_QUEUE_NUM = 1100000;
 
