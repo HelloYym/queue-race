@@ -24,7 +24,7 @@ class DefaultMessageStore {
 //    static final QueueCache[] queueMsgCache = new QueueCache[MAX_QUEUE_NUM];
     static final DirectQueueCache[] queueMsgCache = new DirectQueueCache[MAX_QUEUE_NUM];
 
-    private static final int numCommitLog = 200;
+    private static final int numCommitLog = 1000;
 
     private final ArrayList<CommitLogLite> commitLogList;
 
