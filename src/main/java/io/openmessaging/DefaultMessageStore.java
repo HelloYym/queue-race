@@ -23,7 +23,7 @@ class DefaultMessageStore {
 
     static final QueueCache[] queueMsgCache = new QueueCache[MAX_QUEUE_NUM];
 
-    private static final int numCommitLog = 100;
+    private static final int numCommitLog = 200;
 
     private final ArrayList<CommitLogLite> commitLogList;
 
@@ -31,7 +31,7 @@ class DefaultMessageStore {
         this.messageStoreConfig = messageStoreConfig;
         this.commitLogList = new ArrayList<>();
         for (int i = 0; i < numCommitLog; i++)
-            this.commitLogList.add(new CommitLogLite(Integer.MAX_VALUE, getMessageStoreConfig().getStorePathCommitLog()));
+            this.commitLogList.add(new CommitLogLite(getMessageStoreConfig().getMapedFileSizeCommitLog(), getMessageStoreConfig().getStorePathCommitLog()));
     }
 
     private CommitLogLite getCommitLog(int topicId){
