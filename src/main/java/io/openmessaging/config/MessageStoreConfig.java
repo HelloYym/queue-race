@@ -33,27 +33,11 @@ public class MessageStoreConfig {
     // flush data to disk
     private int flushIntervalCommitLog = 500;
 
-    // Whether schedule flush,default is real-time
-    private boolean flushCommitLogTimed = false;
-
-    // ConsumeQueue flush interval
-    private int flushIntervalConsumeQueue = 1000;
-
     private int maxMessageSize = 1024 * 1024 * 4;
-
-    // How many pages are to be flushed when flush ConsumeQueue
-    private int flushConsumeQueueLeastPages = 2;
-
-    private int flushConsumeQueueThoroughInterval = 1000 * 60;
 
     // How many pages are to be flushed when flush CommitLog
     private int flushCommitLogLeastPages = 4;
     private int flushCommitLogThoroughInterval = 1000 * 10;
-    private int maxTransferBytesOnMessageInMemory = 1024 * 256;
-    private int maxTransferCountOnMessageInMemory = 32;
-    private int maxTransferBytesOnMessageInDisk = 1024 * 64;
-    private int maxTransferCountOnMessageInDisk = 8;
-    private int accessMessageInMemoryMaxRatio = 40;
 
     public int getMapedFileSizeCommitLog() {
         return mapedFileSizeCommitLog;
@@ -75,22 +59,6 @@ public class MessageStoreConfig {
         return storePathCommitLog;
     }
 
-    public int getMaxTransferBytesOnMessageInMemory() {
-        return maxTransferBytesOnMessageInMemory;
-    }
-
-    public int getMaxTransferCountOnMessageInMemory() {
-        return maxTransferCountOnMessageInMemory;
-    }
-
-    public int getMaxTransferBytesOnMessageInDisk() {
-        return maxTransferBytesOnMessageInDisk;
-    }
-
-    public int getMaxTransferCountOnMessageInDisk() {
-        return maxTransferCountOnMessageInDisk;
-    }
-
     public int getFlushCommitLogLeastPages() {
         return flushCommitLogLeastPages;
     }
@@ -99,28 +67,4 @@ public class MessageStoreConfig {
         return flushCommitLogThoroughInterval;
     }
 
-    public int getAccessMessageInMemoryMaxRatio() {
-        return accessMessageInMemoryMaxRatio;
-    }
-
-    public boolean isFlushCommitLogTimed() {
-        return flushCommitLogTimed;
-    }
-
-
-    public String getStorePathRootDir() {
-        return storePathRootDir;
-    }
-
-    public int getFlushIntervalConsumeQueue() {
-        return flushIntervalConsumeQueue;
-    }
-
-    public int getFlushConsumeQueueLeastPages() {
-        return flushConsumeQueueLeastPages;
-    }
-
-    public int getFlushConsumeQueueThoroughInterval() {
-        return flushConsumeQueueThoroughInterval;
-    }
 }

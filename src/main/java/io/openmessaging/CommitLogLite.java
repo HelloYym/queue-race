@@ -23,6 +23,7 @@ import static io.openmessaging.config.MessageStoreConfig.SparseSize;
  * Date: 2018/7/5
  * Time: 下午11:04
  */
+
 public class CommitLogLite {
 
     private static final Logger log = LoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
@@ -46,7 +47,7 @@ public class CommitLogLite {
         this.mappedFileSize = mappedFileSize;
 
         /*检查文件夹是否存在*/
-        MappedFile.ensureDirOK(storePath);
+        ensureDirOK(storePath);
 
         /*打开文件，并将文件映射到内存*/
         try {
@@ -57,6 +58,16 @@ public class CommitLogLite {
             log.error("create file channel " + fileName + " Failed. ", e);
         } catch (IOException e) {
             log.error("map file " + fileName + " Failed. ", e);
+        }
+    }
+
+    public static void ensureDirOK(final String dirName) {
+        if (dirName != null) {
+            File f = new File(dirName);
+            if (!f.exists()) {
+                boolean result = f.mkdirs();
+                log.info(dirName + " mkdir " + (result ? "OK" : "Failed"));
+            }
         }
     }
 

@@ -1,5 +1,7 @@
 package io.openmessaging;
 
+import org.junit.Test;
+
 import java.util.Collection;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,19 +16,24 @@ import java.util.concurrent.atomic.AtomicLong;
 public class DemoTest {
 
     public static void main(String[] args) throws Exception {
+        new DemoTest().test();
+    }
+
+    @Test
+    public void test() throws Exception {
         //评测相关配置
         //发送阶段的发送数量，也即发送阶段必须要在规定时间内把这些消息发送完毕方可
-        int msgNum  = 200000009;
+        int msgNum  = 2000000000;
         //发送阶段的最大持续时间，也即在该时间内，如果消息依然没有发送完毕，则退出评测
-        int sendTime = 60 * 60 * 1000;
+        int sendTime = 30 * 60 * 1000;
         //消费阶段的最大持续时间，也即在该时间内，如果消息依然没有消费完毕，则退出评测
-        int checkTime = 60 * 60 * 1000;
+        int checkTime = 30 * 60 * 1000;
         //队列的数量
         int queueNum = 1000000;
         //正确性检测的次数
         int checkNum = 10000;
         //消费阶段的总队列数量
-        int checkQueueNum = 10000;
+        int checkQueueNum = 1000000;
         //发送的线程数量
         int sendTsNum = 10;
         //消费的线程数量
