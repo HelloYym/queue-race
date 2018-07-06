@@ -12,7 +12,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class MessageStoreConfig {
     //The root directory in which the log data is kept
-    private String storePathRootDir = "/alidata1/race2018/data";
+    private String storePathRootDir = "alidata1/race2018/data";
 
     //稀疏索引，每存多少个写一个索引
     public static final int SparseSize = 16;//每隔20个存一次
