@@ -34,7 +34,7 @@ public class TopicIdGenerator {
             int topicId = id.getAndIncrement();
             topicIdMap.put(topic, topicId);
             DefaultMessageStore.queueIndexTable[topicId] = new QueueIndex();
-            DefaultMessageStore.queueMsgCache[topicId] = new QueueCache();
+            DefaultMessageStore.queueMsgCache[topicId] = new DirectQueueCache();
             return topicId;
         } else {
             return topicIdMap.get(topic);

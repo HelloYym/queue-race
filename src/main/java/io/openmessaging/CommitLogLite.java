@@ -96,40 +96,84 @@ public class CommitLogLite {
             return -1;
     }
 
-    public ArrayList<byte[]> getMessage(int offset, int start, int end) {
+//    public ArrayList<byte[]> getMessage(int offset, int start, int end) {
+//
+//        ArrayList<byte[]> msgList = new ArrayList<>();
+//
+//        int indexPos = offset;
+//        int msgPos = offset + SparseSize;
+//
+//        ByteBuffer byteBuffer = this.mappedByteBuffer.slice();
+//
+//        for (int i = 0; i < start; i++) {
+//            byteBuffer.position(indexPos);
+//            msgPos += byteBuffer.get();
+//            indexPos++;
+//        }
+//
+//        for (int i = start; i <= end; i++) {
+//
+//            /*读取消息长度*/
+//            byteBuffer.position(indexPos);
+//            int size = byteBuffer.get();
+//
+//            /*读取消息体*/
+//            byte[] msg = new byte[size];
+//            byteBuffer.position(msgPos);
+//            byteBuffer.get(msg, 0, size);
+//
+//            msgList.add(msg);
+//
+//            msgPos += size;
+//            indexPos++;
+//        }
+//
+//        return msgList;
+//    }
+
+
+    //写一串数据
+    public int putMessage(ByteBuffer byteBuffer) {
+
+        int currentPos = this.wrotePosition.getAndAdd(byteBuffer.limit());
+        try {
+            this.fileChannel.write(byteBuffer, currentPos);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return currentPos;
+    }
+
+    ArrayList<byte[]> getMessage(int offset, int start, int end) {
 
         ArrayList<byte[]> msgList = new ArrayList<>();
 
-        int indexPos = offset;
-        int msgPos = offset + SparseSize;
+        int currentPos = offset;
+        int idx = 0;
+        byte size;
 
         ByteBuffer byteBuffer = this.mappedByteBuffer.slice();
 
-        for (int i = 0; i < start; i++) {
-            byteBuffer.position(indexPos);
-            msgPos += byteBuffer.get();
-            indexPos++;
-        }
-
-        for (int i = start; i <= end; i++) {
-
+        while (idx <= end){
             /*读取消息长度*/
-            byteBuffer.position(indexPos);
-            int size = byteBuffer.get();
+            byteBuffer.position(currentPos);
+            size = byteBuffer.get();
 
             /*读取消息体*/
             byte[] msg = new byte[size];
-            byteBuffer.position(msgPos);
+            byteBuffer.position(currentPos+1);
             byteBuffer.get(msg, 0, size);
 
-            msgList.add(msg);
+            if (idx >= start)
+                msgList.add(msg);
 
-            msgPos += size;
-            indexPos++;
+            currentPos += 1 + size;
+            idx++;
         }
 
         return msgList;
     }
+
 }
 
 

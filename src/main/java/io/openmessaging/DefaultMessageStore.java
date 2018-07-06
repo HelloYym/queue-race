@@ -21,7 +21,8 @@ class DefaultMessageStore {
 
     static final QueueIndex[] queueIndexTable = new QueueIndex[MAX_QUEUE_NUM];
 
-    static final QueueCache[] queueMsgCache = new QueueCache[MAX_QUEUE_NUM];
+//    static final QueueCache[] queueMsgCache = new QueueCache[MAX_QUEUE_NUM];
+    static final DirectQueueCache[] queueMsgCache = new DirectQueueCache[MAX_QUEUE_NUM];
 
     private static final int numCommitLog = 100;
 
@@ -39,10 +40,10 @@ class DefaultMessageStore {
     }
 
     void putMessage(int topicId, byte[] msg) {
-        QueueCache cache = queueMsgCache[topicId];
-        cache.addMessage(msg);
-        if (cache.size() == SparseSize) {
-            int offset = getCommitLog(topicId).putMessage(cache.getMsgList());
+        DirectQueueCache cache = queueMsgCache[topicId];
+        int size = cache.addMessage(msg);
+        if (size == SparseSize) {
+            int offset = getCommitLog(topicId).putMessage(cache.getByteBuffer());
             queueIndexTable[topicId].putIndex(offset);
             cache.clear();
         }
@@ -71,7 +72,7 @@ class DefaultMessageStore {
 
         /*直接读缓存*/
         if (nums > 0){
-            List<byte[]> cache = queueMsgCache[topicId].getMsgList();
+            List<byte[]> cache = queueMsgCache[topicId].readMsgList();
             if (!cache.isEmpty()){
                 int start =  off % SparseSize;
                 int end = Math.min(cache.size(), start + nums);
