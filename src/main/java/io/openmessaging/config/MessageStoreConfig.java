@@ -21,7 +21,7 @@ public class MessageStoreConfig {
 
     public static final int MAX_MESSAGE_NUM_PER_QUEUE = 2200;
 
-    public static final int QUEUE_CACHE_SIZE = (100) * SparseSize;
+    public static final int QUEUE_CACHE_SIZE = (60) * SparseSize;
 
 
     public static final Lock lock = new ReentrantLock();
