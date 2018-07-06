@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static jdk.nashorn.internal.runtime.regexp.joni.Config.log;
-
+import static io.openmessaging.config.MessageStoreConfig.lock;
 /**
  * Created by IntelliJ IDEA.
  * User: QWC
@@ -117,7 +117,7 @@ public class CommitLog {
 //        }
 //        return null;
 //    }
-    public ArrayList<byte[]> getMessage(long offset, int start, int end){
+    public ArrayList<byte[]> getMessage(int offset, int start, int end){
         int mappedFileSize = this.defaultMessageStore.getMessageStoreConfig().getMapedFileSizeCommitLog();
         MappedFile mappedFile = this.mappedFileQueue.findMappedFileByOffset(offset, offset == 0);
 
@@ -130,24 +130,24 @@ public class CommitLog {
             SelectMappedBufferResult message;
             ArrayList<byte[]> msgList = new ArrayList<>();
 
-            int msgPos = pos + 4 * SparseSize;
+            int msgPos = pos + 1 * SparseSize;
 
             //此时的pos已经是去掉消息大小部分的位置了
             for(int i = 0; i < start; i++){
 
-                msgPos = msgPos + mappedFile.selectMappedBuffer(pos, 4).getByteBuffer().getInt();
-                pos = pos + 4;
+                msgPos = msgPos + mappedFile.selectMappedBuffer(pos, 1).getByteBuffer().get();
+                pos = pos + 1;
 
             }
             //此时pos是start开始要取的位置
             for(int i = start; i <= end; i++){
 
-                int size = mappedFile.selectMappedBuffer(pos, 4).getByteBuffer().getInt();
+                int size = mappedFile.selectMappedBuffer(pos, 1).getByteBuffer().get();
                 message = mappedFile.selectMappedBuffer(msgPos, size);
                 addMessage(message, msgList);
 
                 msgPos = msgPos + size;
-                pos = pos + 4;
+                pos = pos + 1;
 
             }
 
@@ -191,8 +191,9 @@ public class CommitLog {
         // commitlog中最后一个文件
         MappedFile mappedFile = this.mappedFileQueue.getLastMappedFile();
 
-        putMessageLock.lock(); //自旋锁上锁
+
         try {
+            putMessageLock.lock(); //自旋锁上锁
             /*如果没有文件或最后一个文件写满，新建一个文件*/
             if (null == mappedFile || mappedFile.isFull()) {
                 mappedFile = this.mappedFileQueue.getLastMappedFile(0); // Mark: NewFile may be cause noise
@@ -203,6 +204,7 @@ public class CommitLog {
                 return new PutMessageResult(PutMessageStatus.CREATE_MAPEDFILE_FAILED, null);
             }
 
+            putMessageLock.unlock();
             //回调函数，开始写
             result = mappedFile.appendMessage(msgs, this.appendMessageCallback);
             switch (result.getStatus()) {
@@ -210,11 +212,17 @@ public class CommitLog {
                     break;
                 case END_OF_FILE:
                     mappedFile = this.mappedFileQueue.getLastMappedFile(0);
+
                     if (null == mappedFile) {
                         System.out.println("create mapped file2 error" );
                         return new PutMessageResult(PutMessageStatus.CREATE_MAPEDFILE_FAILED, result);
                     }
+
                     result = mappedFile.appendMessage(msgs, this.appendMessageCallback);
+
+                    lock.unlock();//当文件不够写，切换文件适合上锁
+                    System.out.println("2");
+
                     break;
                 case MESSAGE_SIZE_EXCEEDED:
                 case PROPERTIES_SIZE_EXCEEDED:
@@ -226,7 +234,7 @@ public class CommitLog {
             }
 
         } finally {
-            putMessageLock.unlock();
+//            putMessageLock.unlock();
         }
 
         //每次写消息，都会另一个线程异步刷盘
@@ -323,7 +331,7 @@ public class CommitLog {
                 bodyLength = bodyLength + msgInner.get(i).length;
             }
 
-            final int msgLen = bodyLength + SparseSize * 4;//消息长度
+            final int msgLen = bodyLength + SparseSize * 1;//消息长度
 
             // 如果消息大小大于最大消息限制
 //            if (msgLen > this.maxMessageSize) {
@@ -336,17 +344,17 @@ public class CommitLog {
             if ((msgLen) > maxBlank) {
                 byte[] bytes = new byte[maxBlank];
                 byteBuffer.put(bytes, 0, maxBlank);
-                return new AppendMessageResult(AppendMessageStatus.END_OF_FILE, wroteOffset, maxBlank);
+                return new AppendMessageResult(AppendMessageStatus.END_OF_FILE, (int)wroteOffset, maxBlank);
             }
 
             for(int j = 0; j < msgInner.size(); j++){
-                byteBuffer.putInt(msgInner.get(j).length);
+                byteBuffer.put((byte) msgInner.get(j).length);
             }
             for(int j = 0; j < msgInner.size(); j++){
                 byteBuffer.put(msgInner.get(j));
             }
 
-            AppendMessageResult result = new AppendMessageResult(AppendMessageStatus.PUT_OK, wroteOffset, msgLen);
+            AppendMessageResult result = new AppendMessageResult(AppendMessageStatus.PUT_OK, (int)wroteOffset, msgLen);
             return result;
         }
 
@@ -368,12 +376,12 @@ public class CommitLog {
             if ((msgLen + END_FILE_MIN_BLANK_LENGTH) > maxBlank) {
                 this.resetByteBuffer(this.msgStoreItemMemory, maxBlank);
                 byteBuffer.put(this.msgStoreItemMemory.array(), 0, maxBlank);
-                return new AppendMessageResult(AppendMessageStatus.END_OF_FILE, wroteOffset, maxBlank);
+                return new AppendMessageResult(AppendMessageStatus.END_OF_FILE, (int)wroteOffset, maxBlank);
             }
 
             // 如果消息可以写到当前文件里 那就写吧
             byteBuffer.put(msgInner, 0, msgLen);
-            AppendMessageResult result = new AppendMessageResult(AppendMessageStatus.PUT_OK, wroteOffset, msgLen);
+            AppendMessageResult result = new AppendMessageResult(AppendMessageStatus.PUT_OK, (int)wroteOffset, msgLen);
             return result;
         }
     }

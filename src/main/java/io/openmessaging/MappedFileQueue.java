@@ -152,16 +152,22 @@ public class MappedFileQueue {
 
         /*队列中最后一个文件写满了，createOffset=新文件头的偏移*/
         if (mappedFileLast != null && mappedFileLast.isFull()) {
+
             createOffset = mappedFileLast.getFileFromOffset() + this.mappedFileSize;
+
+//            System.out.println(createOffset);
         }
 
         if (createOffset != -1 && needCreate) {
             String nextFilePath = this.storePath + File.separator + UtilAll.offset2FileName(createOffset);
 
+
             /*直接建立一个新文件*/
             MappedFile mappedFile = null;
             try {
                 mappedFile = new MappedFile(nextFilePath, this.mappedFileSize, this.isMapped);
+
+//                System.out.println("create");
             } catch (IOException e) {
                 e.printStackTrace();
             }

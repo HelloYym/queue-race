@@ -1,6 +1,8 @@
 package io.openmessaging.config;
 
 import java.io.File;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by IntelliJ IDEA.
@@ -14,6 +16,12 @@ public class MessageStoreConfig {
 
     //稀疏索引，每存多少个写一个索引
     public static final int SparseSize = 16;//每隔20个存一次
+
+    public static final int MAX_QUEUE_NUM = 1100000;
+
+    public static final int MAX_MESSAGE_NUM_PER_QUEUE = 2200;
+
+    public static final Lock lock = new ReentrantLock();
 
     //The directory in which the commitlog is kept
     private String storePathCommitLog = storePathRootDir + File.separator + "commitlog";

@@ -17,6 +17,7 @@ import java.security.PrivilegedAction;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import static io.openmessaging.config.MessageStoreConfig.SparseSize;
 
 /**
  * Created by IntelliJ IDEA.
@@ -32,6 +33,7 @@ public class MappedFile extends ReferenceResource {
     private static final AtomicInteger TOTAL_MAPPED_FILES = new AtomicInteger(0);//JVM中mmap的数量
     protected final AtomicInteger wrotePosition = new AtomicInteger(0);//当前写文件的位置
 
+    private final PutMessageSpinLock putMessageLock = new PutMessageSpinLock();
     /*记录当前文件刷盘刷到哪个位置*/
 //    protected final AtomicInteger committedPosition = new AtomicInteger(0);
     private final AtomicInteger flushedPosition = new AtomicInteger(0);
@@ -127,10 +129,37 @@ public class MappedFile extends ReferenceResource {
 
 
     public AppendMessageResult appendMessage(final List<byte[]> message, final AppendMessageCallback cb) {
-        assert message != null;
-        assert cb != null;
+//        assert message != null;
+//        assert cb != null;
 
-        int currentPos = this.wrotePosition.get();
+
+//        putMessageLock.lock();
+//
+//        int currentPos = this.wrotePosition.get();
+//        int size = SparseSize * 4;
+//        for(int i = 0; i < message.size(); i++){
+//            size += message.get(i).length;
+//        }
+//
+//        if(size > this.fileSize - currentPos){
+//            lock.lock();//当文件不够写，切换文件时上锁
+//            this.wrotePosition.addAndGet(this.fileSize - currentPos);
+//            System.out.println("1");
+//        }
+//        else{
+//            this.wrotePosition.addAndGet(size);
+//        }
+//
+//        putMessageLock.unlock();
+
+
+        //这样就可以不上锁了
+        int size = SparseSize * 1;
+        for(int i = 0; i < message.size(); i++){
+            size += message.get(i).length;
+        }
+        int currentPos = this.wrotePosition.getAndAdd(size);
+
 
         if (currentPos < this.fileSize) {
             //不使用writebuff，使用mappedByteBuffer
@@ -139,7 +168,7 @@ public class MappedFile extends ReferenceResource {
             AppendMessageResult result = null;
             result = cb.doAppend(this.getFileFromOffset(), byteBuffer, this.fileSize - currentPos, message);
             //写完之后，将写指针移到写的最后
-            this.wrotePosition.addAndGet(result.getWroteBytes());
+//            this.wrotePosition.addAndGet(result.getWroteBytes());
             return result;
         }
         log.error("MappedFile.appendMessage return null, wrotePosition: {} fileSize: {}", currentPos, this.fileSize);

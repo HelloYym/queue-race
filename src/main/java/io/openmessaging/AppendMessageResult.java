@@ -15,7 +15,7 @@ public class AppendMessageResult {
     // Return code
     private AppendMessageStatus status;
     // Where to start writing
-    private long wroteOffset;
+    private int wroteOffset;
     // Write Bytes
     private int wroteBytes;
 
@@ -24,7 +24,7 @@ public class AppendMessageResult {
         this(status, 0, 0);
     }
 
-    public AppendMessageResult(AppendMessageStatus status, long wroteOffset, int wroteBytes) {
+    public AppendMessageResult(AppendMessageStatus status, int wroteOffset, int wroteBytes) {
         this.status = status;
         this.wroteOffset = wroteOffset;
         this.wroteBytes = wroteBytes;
@@ -43,11 +43,11 @@ public class AppendMessageResult {
         this.status = status;
     }
 
-    public long getWroteOffset() {
+    public int getWroteOffset() {
         return wroteOffset;
     }
 
-    public void setWroteOffset(long wroteOffset) {
+    public void setWroteOffset(int wroteOffset) {
         this.wroteOffset = wroteOffset;
     }
 
