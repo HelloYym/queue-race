@@ -21,10 +21,10 @@ class DefaultMessageStore {
 
     static final QueueIndex[] queueIndexTable = new QueueIndex[MAX_QUEUE_NUM];
 
-//    static final QueueCache[] queueMsgCache = new QueueCache[MAX_QUEUE_NUM];
+    //    static final QueueCache[] queueMsgCache = new QueueCache[MAX_QUEUE_NUM];
     static final DirectQueueCache[] queueMsgCache = new DirectQueueCache[MAX_QUEUE_NUM];
 
-    private static final int numCommitLog = 1000;
+    private static final int numCommitLog = 200;
 
     private final ArrayList<CommitLogLite> commitLogList;
 
@@ -32,10 +32,13 @@ class DefaultMessageStore {
         this.messageStoreConfig = messageStoreConfig;
         this.commitLogList = new ArrayList<>();
         for (int i = 0; i < numCommitLog; i++)
-            this.commitLogList.add(new CommitLogLite(getMessageStoreConfig().getMapedFileSizeCommitLog(), getMessageStoreConfig().getStorePathCommitLog()));
+            this.commitLogList.add(new CommitLogLite(1024 * 1024 * 1024, getMessageStoreConfig().getStorePathCommitLog()));
+
+        for (int topicId = 0; topicId < MAX_QUEUE_NUM; topicId++)
+            queueMsgCache[topicId] = new DirectQueueCache();
     }
 
-    private CommitLogLite getCommitLog(int topicId){
+    private CommitLogLite getCommitLog(int topicId) {
         return commitLogList.get(topicId % numCommitLog);
     }
 
@@ -61,7 +64,7 @@ class DefaultMessageStore {
             int start = off % SparseSize;
             int end = Math.min(start + nums, SparseSize) - 1;
             try {
-                msgList.addAll(commitLog.getMessage((int)index.getIndex(off), start, end));
+                msgList.addAll(commitLog.getMessage((int) index.getIndex(off), start, end));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -71,10 +74,10 @@ class DefaultMessageStore {
         }
 
         /*直接读缓存*/
-        if (nums > 0){
+        if (nums > 0) {
             List<byte[]> cache = queueMsgCache[topicId].readMsgList();
-            if (!cache.isEmpty()){
-                int start =  off % SparseSize;
+            if (!cache.isEmpty()) {
+                int start = off % SparseSize;
                 int end = Math.min(cache.size(), start + nums);
                 msgList.addAll(cache.subList(start, end));
             }
