@@ -24,7 +24,9 @@ class DefaultMessageStore {
     static final QueueIndex[] queueIndexTable = new QueueIndex[MAX_QUEUE_NUM];
 
     //    static final QueueCache[] queueMsgCache = new QueueCache[MAX_QUEUE_NUM];
-    static final DirectQueueCache[] queueMsgCache = new DirectQueueCache[MAX_QUEUE_NUM];
+    private static  DirectQueueCache[] queueMsgCache = new DirectQueueCache[MAX_QUEUE_NUM];
+    private static  ReadQueueCache[] readMsgCache = new ReadQueueCache[MAX_QUEUE_NUM];
+
 
     private static final int numCommitLog = 200;
 
@@ -39,8 +41,10 @@ class DefaultMessageStore {
         for (int i = 0; i < numCommitLog; i++)
             this.commitLogList.add(new CommitLogLite(1024 * 1024 * 1024, getMessageStoreConfig().getStorePathCommitLog()));
 
-        for (int topicId = 0; topicId < MAX_QUEUE_NUM; topicId++)
+        for (int topicId = 0; topicId < MAX_QUEUE_NUM; topicId++){
             queueMsgCache[topicId] = new DirectQueueCache();
+            readMsgCache[topicId] = new ReadQueueCache(queueMsgCache[topicId].getByteBuffer());
+        }
     }
 
     private CommitLogLite getCommitLog(int topicId) {
@@ -67,6 +71,7 @@ class DefaultMessageStore {
             queueIndexTable[topicId].putIndex(offset);
             cache.clear();
         }
+        queueMsgCache = null;
         flushComplete = true;
     }
 
@@ -92,15 +97,24 @@ class DefaultMessageStore {
 
         while (nums > 0 && index.getIndex(off) != -1) {
             int start = off % SparseSize;
-            int end = Math.min(start + nums, SparseSize) - 1;
+            int end = Math.min(start + nums, SparseSize);
             try {
-                msgList.addAll(commitLog.getMessage((int) index.getIndex(off), start, end));
+                ReadQueueCache cache = readMsgCache[topicId];
+                int phyOffset = index.getIndex(off);
+
+                synchronized (cache){
+                    if (cache.getOffset() != phyOffset)
+                        commitLog.getMessage(phyOffset, cache);
+                    msgList.addAll(cache.getMessage(start, end));
+//                    if (end >= SparseSize) cache.clear();
+                }
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            nums -= (end - start + 1);
-            off += (end - start + 1);
+            nums -= (end - start);
+            off += (end - start);
         }
 
         return msgList;

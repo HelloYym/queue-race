@@ -21,11 +21,15 @@ public class QueueIndex {
     public QueueIndex() {
     }
 
+    public int getSize() {
+        return size;
+    }
+
     public void putIndex(int offset) {
         index[size ++] = offset;
     }
 
-    public long getIndex(int offset) {
+    public int getIndex(int offset) {
         if (offset / SparseSize < size)
             return index[offset / SparseSize];
         else

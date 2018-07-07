@@ -145,36 +145,46 @@ public class CommitLogLite {
         return currentPos;
     }
 
-    ArrayList<byte[]> getMessage(int offset, int start, int end) {
+//    ArrayList<byte[]> getMessage(int offset, int start, int end) {
+//
+//        ArrayList<byte[]> msgList = new ArrayList<>();
+//
+//        int currentPos = offset;
+//        int idx = 0;
+//        byte size;
+//
+//        ByteBuffer byteBuffer = this.mappedByteBuffer.slice();
+//
+//        while (idx <= end){
+//            /*读取消息长度*/
+//            byteBuffer.position(currentPos);
+//            size = byteBuffer.get();
+//
+//            if (size == 0) break;
+//
+//            /*读取消息体*/
+//            byte[] msg = new byte[size];
+//            byteBuffer.position(currentPos+1);
+//            byteBuffer.get(msg, 0, size);
+//
+//            if (idx >= start)
+//                msgList.add(msg);
+//
+//            currentPos += 1 + size;
+//            idx++;
+//        }
+//
+//        return msgList;
+//    }
 
-        ArrayList<byte[]> msgList = new ArrayList<>();
+    void getMessage(int offset, ReadQueueCache cache) {
 
-        int currentPos = offset;
-        int idx = 0;
-        byte size;
-
-        ByteBuffer byteBuffer = this.mappedByteBuffer.slice();
-
-        while (idx <= end){
-            /*读取消息长度*/
-            byteBuffer.position(currentPos);
-            size = byteBuffer.get();
-
-            if (size == 0) break;
-
-            /*读取消息体*/
-            byte[] msg = new byte[size];
-            byteBuffer.position(currentPos+1);
-            byteBuffer.get(msg, 0, size);
-
-            if (idx >= start)
-                msgList.add(msg);
-
-            currentPos += 1 + size;
-            idx++;
+        try {
+            fileChannel.read(cache.getWriteBuffer(), offset);
+            cache.setOffset(offset);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
-        return msgList;
     }
 
 }

@@ -47,11 +47,11 @@ public class DemoTest {
         //消费阶段的最大持续时间，也即在该时间内，如果消息依然没有消费完毕，则退出评测
         checkTime = 60 * 60 * 1000;
         //队列的数量
-        queueNum = 10000;
+        queueNum = 100000;
         //正确性检测的次数
         checkNum = 10000;
         //消费阶段的总队列数量
-        checkQueueNum = 2000;
+        checkQueueNum = 20000;
         //发送的线程数量
         sendTsNum = 10;
         //消费的线程数量
