@@ -24,11 +24,15 @@ public class ReadQueueCache {
 
     private int offset = -1;
 
+    private int index = 0;
+    private int pos = 0;
     public ReadQueueCache(ByteBuffer byteBuffer) {
         this.byteBuffer = byteBuffer;
     }
 
     public ByteBuffer getWriteBuffer() {
+        index = 0;
+        pos = 0;
         byteBuffer.clear();
         return byteBuffer;
     }
@@ -45,30 +49,29 @@ public class ReadQueueCache {
 
         ArrayList<byte[]> msgList = new ArrayList<>();
 
-        byteBuffer.position(0);
+        if (index != start) {
+            index = 0;
+            pos = 0;
+        }
+        byteBuffer.position(pos);
         byteBuffer.limit(QUEUE_CACHE_SIZE);
 
-//        int currentPos = 0;
-        int idx = 0;
         byte size;
 
-        while (idx < end){
+        while (index < end){
             /*读取消息长度*/
-//            byteBuffer.position(currentPos);
             size = byteBuffer.get();
 
             if (size == 0) break;
 
             /*读取消息体*/
             byte[] msg = new byte[size];
-//            byteBuffer.position(currentPos+1);
             byteBuffer.get(msg, 0, size);
 
-            if (idx >= start)
+            if (index >= start)
                 msgList.add(msg);
-
-//            currentPos += 1 + size;
-            idx++;
+            index++;
+            pos += size + 1;
         }
 
         return msgList;

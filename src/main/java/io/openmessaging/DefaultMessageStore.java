@@ -6,6 +6,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static io.openmessaging.config.MessageStoreConfig.MAX_QUEUE_NUM;
 import static io.openmessaging.config.MessageStoreConfig.SparseSize;
@@ -27,6 +29,8 @@ class DefaultMessageStore {
     private static  DirectQueueCache[] queueMsgCache = new DirectQueueCache[MAX_QUEUE_NUM];
     private static  ReadQueueCache[] readMsgCache = new ReadQueueCache[MAX_QUEUE_NUM];
 
+    private Lock[] queueLock = new Lock[MAX_QUEUE_NUM];
+
 
     private static final int numCommitLog = 200;
 
@@ -42,6 +46,7 @@ class DefaultMessageStore {
             this.commitLogList.add(new CommitLogLite(1024 * 1024 * 1024, getMessageStoreConfig().getStorePathCommitLog()));
 
         for (int topicId = 0; topicId < MAX_QUEUE_NUM; topicId++){
+            queueLock[topicId] = new ReentrantLock();
             queueMsgCache[topicId] = new DirectQueueCache();
             readMsgCache[topicId] = new ReadQueueCache(queueMsgCache[topicId].getByteBuffer());
         }
@@ -102,11 +107,12 @@ class DefaultMessageStore {
                 ReadQueueCache cache = readMsgCache[topicId];
                 int phyOffset = index.getIndex(off);
 
-                synchronized (cache){
-                    if (cache.getOffset() != phyOffset)
-                        commitLog.getMessage(phyOffset, cache);
+                if (queueLock[topicId].tryLock()) {
+                    if (cache.getOffset() != phyOffset) commitLog.getMessage(phyOffset, cache);
                     msgList.addAll(cache.getMessage(start, end));
-//                    if (end >= SparseSize) cache.clear();
+                    queueLock[topicId].unlock();
+                } else {
+                    msgList.addAll(commitLog.getMessage(phyOffset, start, end));
                 }
 
             } catch (Exception e) {
