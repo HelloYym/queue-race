@@ -18,9 +18,6 @@ class DirectQueueCache {
 
     private ByteBuffer byteBuffer;
 
-    private ArrayList<byte[]> msgList;
-
-    /*是个瓶颈*/
     private byte size = 0;
 
     DirectQueueCache() {
@@ -35,28 +32,16 @@ class DirectQueueCache {
 
     ByteBuffer getByteBuffer() {
         /*limit设为当前position,position设为0*/
-        byteBuffer.flip();
         return byteBuffer;
     }
 
-    ArrayList<byte[]> readMsgList() {
+    void putTerminator(){
+        byteBuffer.put((byte) 0);
+    }
 
-        if (msgList != null)
-            return msgList;
 
-        msgList = new ArrayList<>();
-        byteBuffer.flip();
-
-        while (byteBuffer.hasRemaining()) {
-            /*读取消息长度*/
-            byte len = byteBuffer.get();
-            /*读取消息体*/
-            byte[] msg = new byte[len];
-            byteBuffer.get(msg);
-            msgList.add(msg);
-        }
-
-        return msgList;
+    public byte getSize() {
+        return size;
     }
 
     void clear() {

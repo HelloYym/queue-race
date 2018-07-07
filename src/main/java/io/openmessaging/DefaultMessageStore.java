@@ -2,8 +2,10 @@ package io.openmessaging;
 
 import io.openmessaging.config.MessageStoreConfig;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.openmessaging.config.MessageStoreConfig.MAX_QUEUE_NUM;
 import static io.openmessaging.config.MessageStoreConfig.SparseSize;
@@ -27,6 +29,9 @@ class DefaultMessageStore {
     private static final int numCommitLog = 200;
 
     private final ArrayList<CommitLogLite> commitLogList;
+
+    private final AtomicBoolean consumeStart = new AtomicBoolean(false);
+    private boolean flushComplete = false;
 
     DefaultMessageStore(final MessageStoreConfig messageStoreConfig) {
         this.messageStoreConfig = messageStoreConfig;
@@ -52,7 +57,32 @@ class DefaultMessageStore {
         }
     }
 
+    private void flushCache() {
+        for (int topicId = 0; topicId < MAX_QUEUE_NUM; topicId++){
+            DirectQueueCache cache = queueMsgCache[topicId];
+            int size = cache.getSize();
+            if (size == 0) continue;
+            if (size < SparseSize) cache.putTerminator();
+            int offset = getCommitLog(topicId).putMessage(cache.getByteBuffer());
+            queueIndexTable[topicId].putIndex(offset);
+            cache.clear();
+        }
+        flushComplete = true;
+    }
+
     List<byte[]> getMessage(int topicId, int offset, int maxMsgNums) {
+
+        if (consumeStart.compareAndSet(false, true)){
+            flushCache();
+        } else {
+            while (!flushComplete){
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 
         int off = offset;
         int nums = maxMsgNums;
@@ -73,20 +103,10 @@ class DefaultMessageStore {
             off += (end - start + 1);
         }
 
-        /*直接读缓存*/
-        if (nums > 0) {
-            List<byte[]> cache = queueMsgCache[topicId].readMsgList();
-            if (!cache.isEmpty()) {
-                int start = off % SparseSize;
-                int end = Math.min(cache.size(), start + nums);
-                msgList.addAll(cache.subList(start, end));
-            }
-        }
-
         return msgList;
     }
 
-    MessageStoreConfig getMessageStoreConfig() {
+    private MessageStoreConfig getMessageStoreConfig() {
         return messageStoreConfig;
     }
 }

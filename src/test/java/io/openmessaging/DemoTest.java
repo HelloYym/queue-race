@@ -15,29 +15,51 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class DemoTest {
 
+    //评测相关配置
+    //发送阶段的发送数量，也即发送阶段必须要在规定时间内把这些消息发送完毕方可
+    int msgNum  = 2000000000;
+    //发送阶段的最大持续时间，也即在该时间内，如果消息依然没有发送完毕，则退出评测
+    int sendTime = 60 * 60 * 1000;
+    //消费阶段的最大持续时间，也即在该时间内，如果消息依然没有消费完毕，则退出评测
+    int checkTime = 60 * 60 * 1000;
+    //队列的数量
+    int queueNum = 1000000;
+    //正确性检测的次数
+    int checkNum = 10000;
+    //消费阶段的总队列数量
+    int checkQueueNum = 200000;
+    //发送的线程数量
+    int sendTsNum = 10;
+    //消费的线程数量
+    int checkTsNum = 10;
+
     public static void main(String[] args) throws Exception {
-        new DemoTest().test();
+
+        DemoTest testCase = new DemoTest();
+        testCase.setArg();
+        testCase.test();
+    }
+
+    public void setArg() {
+        msgNum  = 10000000;
+        //发送阶段的最大持续时间，也即在该时间内，如果消息依然没有发送完毕，则退出评测
+        sendTime = 60 * 60 * 1000;
+        //消费阶段的最大持续时间，也即在该时间内，如果消息依然没有消费完毕，则退出评测
+        checkTime = 60 * 60 * 1000;
+        //队列的数量
+        queueNum = 10000;
+        //正确性检测的次数
+        checkNum = 10000;
+        //消费阶段的总队列数量
+        checkQueueNum = 2000;
+        //发送的线程数量
+        sendTsNum = 10;
+        //消费的线程数量
+        checkTsNum = 10;
     }
 
     @Test
     public void test() throws Exception {
-        //评测相关配置
-        //发送阶段的发送数量，也即发送阶段必须要在规定时间内把这些消息发送完毕方可
-        int msgNum  = 2000000000;
-        //发送阶段的最大持续时间，也即在该时间内，如果消息依然没有发送完毕，则退出评测
-        int sendTime = 60 * 60 * 1000;
-        //消费阶段的最大持续时间，也即在该时间内，如果消息依然没有消费完毕，则退出评测
-        int checkTime = 60 * 60 * 1000;
-        //队列的数量
-        int queueNum = 1000000;
-        //正确性检测的次数
-        int checkNum = 10000;
-        //消费阶段的总队列数量
-        int checkQueueNum = 1000000;
-        //发送的线程数量
-        int sendTsNum = 10;
-        //消费的线程数量
-        int checkTsNum = 10;
 
         ConcurrentMap<String, AtomicInteger> queueNumMap = new ConcurrentHashMap<>();
         for (int i = 0; i < queueNum; i++) {

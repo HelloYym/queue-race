@@ -133,8 +133,9 @@ public class CommitLogLite {
 
 
     //写一串数据
-    public int putMessage(ByteBuffer byteBuffer) {
+    int putMessage(ByteBuffer byteBuffer) {
 
+        byteBuffer.flip();
         int currentPos = this.wrotePosition.getAndAdd(byteBuffer.limit());
         try {
             this.fileChannel.write(byteBuffer, currentPos);
@@ -158,6 +159,8 @@ public class CommitLogLite {
             /*读取消息长度*/
             byteBuffer.position(currentPos);
             size = byteBuffer.get();
+
+            if (size == 0) break;
 
             /*读取消息体*/
             byte[] msg = new byte[size];
