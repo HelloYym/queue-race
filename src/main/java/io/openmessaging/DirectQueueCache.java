@@ -49,4 +49,41 @@ class DirectQueueCache {
         byteBuffer.clear();
         size = 0;
     }
+
+    /*ReadQueueCache*/
+
+    ArrayList<byte[]> getMessage(int start, int end) {
+
+        ArrayList<byte[]> msgList = new ArrayList<>();
+
+        byte index = 0;
+
+        byteBuffer.position(0);
+        byteBuffer.limit(QUEUE_CACHE_SIZE);
+
+        byte size;
+
+        while (index < end){
+            /*读取消息长度*/
+            size = byteBuffer.get();
+
+            if (size == 0) break;
+
+            /*读取消息体*/
+            byte[] msg = new byte[size];
+            byteBuffer.get(msg, 0, size);
+
+            if (index >= start)
+                msgList.add(msg);
+
+            index++;
+        }
+
+        return msgList;
+    }
+
+    public ByteBuffer getWriteBuffer() {
+        byteBuffer.clear();
+        return byteBuffer;
+    }
 }

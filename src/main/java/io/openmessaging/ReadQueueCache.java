@@ -22,7 +22,7 @@ public class ReadQueueCache {
 
     private ByteBuffer byteBuffer;
 
-    private int offset = -1;
+//    private int offset = -1;
 
     private int index = 0;
     private int pos = 0;
@@ -37,13 +37,13 @@ public class ReadQueueCache {
         return byteBuffer;
     }
 
-    public int getOffset() {
-        return offset;
-    }
-
-    public void setOffset(int offset) {
-        this.offset = offset;
-    }
+//    public int getOffset() {
+//        return offset;
+//    }
+//
+//    public void setOffset(int offset) {
+//        this.offset = offset;
+//    }
 
     ArrayList<byte[]> getMessage(int start, int end) {
 
