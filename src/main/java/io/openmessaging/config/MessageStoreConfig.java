@@ -24,7 +24,7 @@ public class MessageStoreConfig {
     public static final int QUEUE_CACHE_SIZE = (60) * SparseSize;
 
     // CommitLog file size,default is 1G
-    private int fileSizeCommitLog = 1024 * 1024 * 1024 * 2;
+    private int fileSizeCommitLog = Integer.MAX_VALUE;
 
     private int numCommitLog = 100;
 
