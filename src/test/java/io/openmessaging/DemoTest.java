@@ -25,7 +25,7 @@ public class DemoTest {
     //队列的数量
     int queueNum = 1000000;
     //正确性检测的次数
-    int checkNum = 10000;
+    int checkNum = 1000000;
     //消费阶段的总队列数量
     int checkQueueNum = 200000;
     //发送的线程数量

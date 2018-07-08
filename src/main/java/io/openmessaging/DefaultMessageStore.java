@@ -34,19 +34,18 @@ class DefaultMessageStore {
     private AtomicBoolean[] queueLock = new AtomicBoolean[MAX_QUEUE_NUM];
 
 
-    private static final int numCommitLog = 100;
+    private int numCommitLog;
 
     private final ArrayList<CommitLogLite> commitLogList;
 
     private final AtomicBoolean consumeStart = new AtomicBoolean(false);
 
-    private boolean flushComplete = false;
-
     DefaultMessageStore(final MessageStoreConfig messageStoreConfig) {
         this.messageStoreConfig = messageStoreConfig;
         this.commitLogList = new ArrayList<>();
+        this.numCommitLog = messageStoreConfig.getNumCommitLog();
         for (int i = 0; i < numCommitLog; i++)
-            this.commitLogList.add(new CommitLogLite(Integer.MAX_VALUE, getMessageStoreConfig().getStorePathCommitLog()));
+            this.commitLogList.add(new CommitLogLite(messageStoreConfig.getFileSizeCommitLog(), getMessageStoreConfig().getStorePathCommitLog()));
 
         for (int topicId = 0; topicId < MAX_QUEUE_NUM; topicId++){
 //            queueLock[topicId] = new ReentrantLock();
@@ -127,6 +126,7 @@ class DefaultMessageStore {
                 nums -= (end - start);
                 off += (end - start);
             }
+            queueMsgCache[topicId].munlock();
             queueMsgCache[topicId] = null;
 //            queueLock[topicId].unlock();
         } else {

@@ -1,5 +1,10 @@
 package io.openmessaging;
 
+import com.sun.jna.NativeLong;
+import com.sun.jna.Pointer;
+import io.openmessaging.utils.LibC;
+import sun.nio.ch.DirectBuffer;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +27,15 @@ class DirectQueueCache {
 
     DirectQueueCache() {
         this.byteBuffer = ByteBuffer.allocateDirect(QUEUE_CACHE_SIZE);
+        final long address = ((DirectBuffer) byteBuffer).address();
+        Pointer pointer = new Pointer(address);
+        LibC.INSTANCE.mlock(pointer, new NativeLong(QUEUE_CACHE_SIZE));
+    }
+
+    public void munlock() {
+        final long address = ((DirectBuffer) byteBuffer).address();
+        Pointer pointer = new Pointer(address);
+        LibC.INSTANCE.munlock(pointer, new NativeLong(QUEUE_CACHE_SIZE));
     }
 
     int addMessage(byte[] msg) {
@@ -35,7 +49,7 @@ class DirectQueueCache {
         return byteBuffer;
     }
 
-    void putTerminator(){
+    void putTerminator() {
         byteBuffer.put((byte) 0);
     }
 
@@ -63,7 +77,7 @@ class DirectQueueCache {
 
         byte size;
 
-        while (index < end){
+        while (index < end) {
             /*读取消息长度*/
             size = byteBuffer.get();
 
