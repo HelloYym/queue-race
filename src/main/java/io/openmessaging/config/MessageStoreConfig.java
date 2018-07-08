@@ -24,9 +24,9 @@ public class MessageStoreConfig {
     public static final int QUEUE_CACHE_SIZE = (60) * SparseSize;
 
     // CommitLog file size,default is 1G
-    private int fileSizeCommitLog = 1024 * 1024 * 1024;
+    private int fileSizeCommitLog = 1024 * 1024 * 1024 * 2;
 
-    private int numCommitLog = 200;
+    private int numCommitLog = 100;
 
     //The directory in which the commitlog is kept
     private String storePathCommitLog = storePathRootDir + File.separator + "commitlog";
