@@ -60,7 +60,7 @@ public class CommitLogLite {
             this.fileChannel = new RandomAccessFile(file, "rw").getChannel();
             this.mappedByteBuffer = this.fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, mappedFileSize);
 
-            warmup();
+//            warmup();
 
         } catch (FileNotFoundException e) {
             log.error("create file channel " + fileName + " Failed. ", e);

@@ -9,7 +9,7 @@ import java.util.Collection;
 
 public class DefaultQueueStoreImpl extends QueueStore {
 
-    private static final Logger log = LoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
+//    private static final Logger log = LoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
 
     private final MessageStoreConfig messageStoreConfig;
 
@@ -28,7 +28,7 @@ public class DefaultQueueStoreImpl extends QueueStore {
 
     @Override
     Collection<byte[]> get(String queueName, long offset, long num) {
-        log.info(String.valueOf(num));
+//        log.info(String.valueOf(num));
         return messageStore.getMessage(TopicIdGenerator.getInstance().getId(queueName), (int) offset, (int) num);
 //        return messageStore.getMessage(queueName, (int) offset, (int) num);
     }
