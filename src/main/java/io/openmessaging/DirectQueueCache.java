@@ -83,12 +83,14 @@ class DirectQueueCache {
 
             if (size == 0) break;
 
-            /*读取消息体*/
-            byte[] msg = new byte[size];
-            byteBuffer.get(msg, 0, size);
-
-            if (index >= start)
+            if (index >= start){
+                /*读取消息体*/
+                byte[] msg = new byte[size];
+                byteBuffer.get(msg, 0, size);
                 msgList.add(msg);
+            } else {
+                byteBuffer.position(byteBuffer.position() + size);
+            }
 
             index++;
         }
