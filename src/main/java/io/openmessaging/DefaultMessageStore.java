@@ -34,7 +34,7 @@ class DefaultMessageStore {
     private AtomicBoolean[] queueLock = new AtomicBoolean[MAX_QUEUE_NUM];
 
 
-    private static final int numCommitLog = 200;
+    private static final int numCommitLog = 100;
 
     private final ArrayList<CommitLogLite> commitLogList;
 
@@ -46,7 +46,7 @@ class DefaultMessageStore {
         this.messageStoreConfig = messageStoreConfig;
         this.commitLogList = new ArrayList<>();
         for (int i = 0; i < numCommitLog; i++)
-            this.commitLogList.add(new CommitLogLite(1024 * 1024 * 1024, getMessageStoreConfig().getStorePathCommitLog()));
+            this.commitLogList.add(new CommitLogLite(Integer.MAX_VALUE, getMessageStoreConfig().getStorePathCommitLog()));
 
         for (int topicId = 0; topicId < MAX_QUEUE_NUM; topicId++){
 //            queueLock[topicId] = new ReentrantLock();
