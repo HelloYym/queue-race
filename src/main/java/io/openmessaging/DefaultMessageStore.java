@@ -32,7 +32,7 @@ class DefaultMessageStore {
     private Lock[] queueLock = new Lock[MAX_QUEUE_NUM];
 
 
-    private static final int numCommitLog = 200;
+    private static final int numCommitLog = 150;
 
     private final ArrayList<CommitLogLite> commitLogList;
 
@@ -121,12 +121,12 @@ class DefaultMessageStore {
                 nums -= (end - start);
                 off += (end - start);
             }
+//            queueLock[topicId].unlock();
         } else {
             while (nums > 0 && index.getIndex(off) != -1) {
                 int start = off % SparseSize;
                 int end = Math.min(start + nums, SparseSize);
                 try {
-                    ReadQueueCache cache = readMsgCache[topicId];
                     int phyOffset = index.getIndex(off);
                     msgList.addAll(commitLog.getMessage(phyOffset, start, end));
                 } catch (Exception e) {
