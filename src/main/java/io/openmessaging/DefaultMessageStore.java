@@ -70,13 +70,13 @@ class DefaultMessageStore {
         }
     }
 
-    private void flushCache() {
-        for (int topicId = 0; topicId < MAX_QUEUE_NUM; topicId++){
-            flushCache(topicId);
-        }
-//        queueMsgCache = null;
-        flushComplete = true;
-    }
+//    private void flushCache() {
+//        for (int topicId = 0; topicId < MAX_QUEUE_NUM; topicId++){
+//            flushCache(topicId);
+//        }
+////        queueMsgCache = null;
+//        flushComplete = true;
+//    }
 
     private void flushCache(int topicId) {
         DirectQueueCache cache = queueMsgCache[topicId];
@@ -90,17 +90,17 @@ class DefaultMessageStore {
 
     List<byte[]> getMessage(int topicId, int offset, int maxMsgNums) {
 
-        if (consumeStart.compareAndSet(false, true)) {
-            flushCache();
-        } else {
-            while (!flushComplete) {
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+//        if (consumeStart.compareAndSet(false, true)) {
+//            flushCache();
+//        } else {
+//            while (!flushComplete) {
+//                try {
+//                    Thread.sleep(1);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
 
         int off = offset;
         int nums = maxMsgNums;
@@ -109,6 +109,9 @@ class DefaultMessageStore {
         List<byte[]> msgList = new ArrayList<>(maxMsgNums);
 
         if (queueLock[topicId].compareAndSet(false, true)) {
+
+            flushCache(topicId);
+
             while (nums > 0 && index.getIndex(off) != -1) {
                 int start = off % SparseSize;
                 int end = Math.min(start + nums, SparseSize);
