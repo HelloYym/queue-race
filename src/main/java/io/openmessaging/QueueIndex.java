@@ -26,7 +26,7 @@ public class QueueIndex {
     }
 
     public void putIndex(int offset) {
-        index[size ++] = offset;
+        index[size++] = offset;
     }
 
     public int getIndex(int offset) {

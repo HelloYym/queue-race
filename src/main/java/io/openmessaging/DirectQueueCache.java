@@ -75,12 +75,9 @@ class DirectQueueCache {
         byteBuffer.position(0);
         byteBuffer.limit(QUEUE_CACHE_SIZE);
 
-        byte size;
-
         while (index < end) {
             /*读取消息长度*/
-            size = byteBuffer.get();
-
+            byte size = byteBuffer.get();
             if (size == 0) break;
 
             if (index >= start){
@@ -91,7 +88,6 @@ class DirectQueueCache {
             } else {
                 byteBuffer.position(byteBuffer.position() + size);
             }
-
             index++;
         }
 
