@@ -27,6 +27,7 @@ class DefaultMessageStore {
 
     //    static final QueueCache[] queueMsgCache = new QueueCache[MAX_QUEUE_NUM];
     private static  DirectQueueCache[] queueMsgCache = new DirectQueueCache[MAX_QUEUE_NUM];
+    private static ReadPointer[] queueReadPointer = new ReadPointer[MAX_QUEUE_NUM];
 //    private static  ReadQueueCache[] readMsgCache = new ReadQueueCache[MAX_QUEUE_NUM];
 
 //    private Lock[] queueLock = new Lock[MAX_QUEUE_NUM];
@@ -52,6 +53,7 @@ class DefaultMessageStore {
             queueLock[topicId] = new AtomicBoolean(false);
             queueMsgCache[topicId] = new DirectQueueCache();
             queueIndexTable[topicId] = new QueueIndex();
+            queueReadPointer[topicId] = new ReadPointer();
 //            readMsgCache[topicId] = new ReadQueueCache(queueMsgCache[topicId].getByteBuffer());
         }
     }
@@ -137,7 +139,7 @@ class DefaultMessageStore {
                 int end = Math.min(start + nums, SparseSize);
                 try {
                     int phyOffset = index.getIndex(off);
-                    msgList.addAll(commitLog.getMessage(phyOffset, start, end));
+                    msgList.addAll(commitLog.getMessage(phyOffset, start, end, queueReadPointer[topicId]));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
