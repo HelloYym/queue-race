@@ -106,6 +106,7 @@ class DefaultMessageStore {
         int nums = maxMsgNums;
         QueueIndex index = queueIndexTable[topicId];
         CommitLogLite commitLog = getCommitLog(topicId);
+
         List<byte[]> msgList = new ArrayList<>(maxMsgNums);
 
         if (queueLock[topicId].compareAndSet(false, true)) {

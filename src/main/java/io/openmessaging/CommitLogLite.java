@@ -1,8 +1,12 @@
 package io.openmessaging;
 
+import com.sun.jna.NativeLong;
+import com.sun.jna.Pointer;
 import io.openmessaging.common.LoggerName;
+import io.openmessaging.utils.LibC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.nio.ch.DirectBuffer;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -15,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static io.openmessaging.config.MessageStoreConfig.QUEUE_CACHE_SIZE;
 import static io.openmessaging.config.MessageStoreConfig.SparseSize;
 
 /**
@@ -54,6 +59,9 @@ public class CommitLogLite {
             File file = new File(storePath + File.separator + fileName.getAndIncrement());
             this.fileChannel = new RandomAccessFile(file, "rw").getChannel();
             this.mappedByteBuffer = this.fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, mappedFileSize);
+
+//            warmup();
+
         } catch (FileNotFoundException e) {
             log.error("create file channel " + fileName + " Failed. ", e);
         } catch (IOException e) {
@@ -155,6 +163,12 @@ public class CommitLogLite {
 
         ByteBuffer byteBuffer = this.mappedByteBuffer.slice();
 
+
+//        final long address = ((DirectBuffer) (this.mappedByteBuffer.position(currentPos))).address();
+//        Pointer pointer = new Pointer(address);
+//        LibC.INSTANCE.mlock(pointer, new NativeLong(QUEUE_CACHE_SIZE));
+
+
         while (idx < end){
             /*读取消息长度*/
             byteBuffer.position(currentPos);
@@ -174,6 +188,8 @@ public class CommitLogLite {
             idx++;
         }
 
+//        LibC.INSTANCE.munlock(pointer, new NativeLong(QUEUE_CACHE_SIZE));
+
         return msgList;
     }
 
@@ -186,6 +202,15 @@ public class CommitLogLite {
             e.printStackTrace();
         }
     }
+
+    public void warmup(){
+        final long address = ((DirectBuffer) (this.mappedByteBuffer)).address();
+        Pointer pointer = new Pointer(address);
+//        LibC.INSTANCE.mlock(pointer, new NativeLong(this.mappedFileSize));
+        LibC.INSTANCE.madvise(pointer, new NativeLong(this.mappedFileSize), LibC.MADV_WILLNEED);
+
+    }
+
 
 }
 
