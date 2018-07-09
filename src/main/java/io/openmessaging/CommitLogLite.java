@@ -80,71 +80,10 @@ public class CommitLogLite {
     }
 
     //写一串数据
-    public int putMessage(List<byte[]> msgs) {
-
-        int bodyLength = 0;
-        for (byte[] msg : msgs)
-            bodyLength += msg.length;
-        int totalLength = SparseSize + bodyLength;
-
-        int currentPos = this.wrotePosition.getAndAdd(totalLength);
-
-        if (currentPos < this.mappedFileSize) {
-            ByteBuffer byteBuffer = this.mappedByteBuffer.slice();
-            byteBuffer.position(currentPos);
-
-            for (byte[] msg : msgs)
-                byteBuffer.put((byte) msg.length);
-
-            for (byte[] msg : msgs)
-                byteBuffer.put(msg);
-
-            return currentPos;
-        } else
-            return -1;
-    }
-
-//    public ArrayList<byte[]> getMessage(int offset, int start, int end) {
-//
-//        ArrayList<byte[]> msgList = new ArrayList<>();
-//
-//        int indexPos = offset;
-//        int msgPos = offset + SparseSize;
-//
-//        ByteBuffer byteBuffer = this.mappedByteBuffer.slice();
-//
-//        for (int i = 0; i < start; i++) {
-//            byteBuffer.position(indexPos);
-//            msgPos += byteBuffer.get();
-//            indexPos++;
-//        }
-//
-//        for (int i = start; i <= end; i++) {
-//
-//            /*读取消息长度*/
-//            byteBuffer.position(indexPos);
-//            int size = byteBuffer.get();
-//
-//            /*读取消息体*/
-//            byte[] msg = new byte[size];
-//            byteBuffer.position(msgPos);
-//            byteBuffer.get(msg, 0, size);
-//
-//            msgList.add(msg);
-//
-//            msgPos += size;
-//            indexPos++;
-//        }
-//
-//        return msgList;
-//    }
-
-
-    //写一串数据
     int putMessage(ByteBuffer byteBuffer) {
 
         byteBuffer.flip();
-        int currentPos = this.wrotePosition.getAndAdd(byteBuffer.limit());
+        int currentPos = this.wrotePosition.getAndAdd(2048);
         try {
             this.fileChannel.write(byteBuffer, currentPos);
         } catch (IOException e) {

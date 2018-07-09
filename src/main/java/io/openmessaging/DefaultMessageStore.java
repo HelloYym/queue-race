@@ -23,13 +23,9 @@ class DefaultMessageStore {
 
     private final MessageStoreConfig messageStoreConfig;
 
-    static final QueueIndex[] queueIndexTable = new QueueIndex[MAX_QUEUE_NUM];
+    private QueueIndex[] queueIndexTable = new QueueIndex[MAX_QUEUE_NUM];
 
-    //    static final QueueCache[] queueMsgCache = new QueueCache[MAX_QUEUE_NUM];
-    private static  DirectQueueCache[] queueMsgCache = new DirectQueueCache[MAX_QUEUE_NUM];
-//    private static  ReadQueueCache[] readMsgCache = new ReadQueueCache[MAX_QUEUE_NUM];
-
-//    private Lock[] queueLock = new Lock[MAX_QUEUE_NUM];
+    private DirectQueueCache[] queueMsgCache = new DirectQueueCache[MAX_QUEUE_NUM];
 
     private AtomicBoolean[] queueLock = new AtomicBoolean[MAX_QUEUE_NUM];
 
@@ -38,6 +34,8 @@ class DefaultMessageStore {
     private int numCommitLog;
 
     private final ArrayList<CommitLogLite> commitLogList;
+
+    private boolean flushComplete = false;
 
     private final AtomicBoolean consumeStart = new AtomicBoolean(false);
 
@@ -57,7 +55,6 @@ class DefaultMessageStore {
     }
 
     private CommitLogLite getCommitLog(int index) {
-//        return commitLogList.get(index);
         return commitLogList.get(index % numCommitLog);
     }
 
@@ -65,11 +62,17 @@ class DefaultMessageStore {
         DirectQueueCache cache = queueMsgCache[topicId];
         int size = cache.addMessage(msg);
         if (size == SparseSize) {
-//            int offset = getCommitLog(queueIndexTable[topicId].getSize()).putMessage(cache.getByteBuffer());
             int offset = getCommitLog(topicId).putMessage(cache.getByteBuffer());
             queueIndexTable[topicId].putIndex(offset);
             cache.clear();
         }
+    }
+
+    private void flushAll() {
+        for (int i = 0 ; i < MAX_QUEUE_NUM; i++) {
+            flushCache(i);
+        }
+        flushComplete = true;
     }
 
     private void flushCache(int topicId) {
@@ -77,13 +80,24 @@ class DefaultMessageStore {
         int size = cache.getSize();
         if (size == 0) return;
         if (size < SparseSize) cache.putTerminator();
-//        int offset = getCommitLog(queueIndexTable[topicId].getSize()).putMessage(cache.getByteBuffer());
         int offset = getCommitLog(topicId).putMessage(cache.getByteBuffer());
         queueIndexTable[topicId].putIndex(offset);
         cache.clear();
     }
 
     List<byte[]> getMessage(int topicId, int offset, int maxMsgNums) {
+
+        if (consumeStart.compareAndSet(false, true)) {
+            flushAll();
+        } else {
+            while (!flushComplete) {
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 
         int off = offset;
         int nums = maxMsgNums;
@@ -94,16 +108,12 @@ class DefaultMessageStore {
 
         if (queueLock[topicId].compareAndSet(false, true)) {
 
-            flushCache(topicId);
-
             while (nums > 0 && index.getIndex(off) != -1) {
-//                CommitLogLite commitLog = getCommitLog(off / SparseSize);
                 int start = off % SparseSize;
                 int end = Math.min(start + nums, SparseSize);
                 try {
                     DirectQueueCache cache = queueMsgCache[topicId];
                     int phyOffset = index.getIndex(off);
-//                    if (cache.getOffset() != phyOffset) commitLog.getMessage(phyOffset, cache);
                     commitLog.getMessage(phyOffset, cache);
                     msgList.addAll(cache.getMessage(start, end));
                 } catch (Exception e) {
@@ -112,12 +122,9 @@ class DefaultMessageStore {
                 nums -= (end - start);
                 off += (end - start);
             }
-//            queueMsgCache[topicId].munlock();
             queueMsgCache[topicId] = null;
-//            queueLock[topicId].unlock();
         } else {
             while (nums > 0 && index.getIndex(off) != -1) {
-//                CommitLogLite commitLog = getCommitLog(off / SparseSize);
                 int start = off % SparseSize;
                 int end = Math.min(start + nums, SparseSize);
                 try {
