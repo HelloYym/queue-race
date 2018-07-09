@@ -16,11 +16,9 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static io.openmessaging.config.MessageStoreConfig.QUEUE_CACHE_SIZE;
-import static io.openmessaging.config.MessageStoreConfig.SparseSize;
+import static io.openmessaging.config.MessageStoreConfig.MESSAGE_SIZE;
 
 /**
  * Created by IntelliJ IDEA.
@@ -83,7 +81,7 @@ public class CommitLogLite {
     int putMessage(ByteBuffer byteBuffer) {
 
         byteBuffer.flip();
-        int currentPos = this.wrotePosition.getAndAdd(2048);
+        int currentPos = this.wrotePosition.getAndAdd(1024);
         try {
             this.fileChannel.write(byteBuffer, currentPos);
         } catch (IOException e) {
@@ -96,77 +94,19 @@ public class CommitLogLite {
 
         ArrayList<byte[]> msgList = new ArrayList<>();
 
-        int idx = 0;
-
         ByteBuffer byteBuffer = this.mappedByteBuffer.slice();
-        byteBuffer.position(offset);
 
-//        final long address = ((DirectBuffer) (this.mappedByteBuffer.position(currentPos))).address();
-//        Pointer pointer = new Pointer(address);
-//        LibC.INSTANCE.mlock(pointer, new NativeLong(QUEUE_CACHE_SIZE));
-
-        while (idx < end){
-            /*读取消息长度*/
+        for (int i = start; i < end; i++) {
+            byteBuffer.position(offset + i * MESSAGE_SIZE);
             byte size = byteBuffer.get();
             if (size == 0) break;
-
-            if (idx >= start) {
-                 /*读取消息体*/
-                byte[] msg = new byte[size];
-                byteBuffer.get(msg, 0, size);
-                msgList.add(msg);
-            }else
-                byteBuffer.position(byteBuffer.position() + size);
-
-            idx++;
-        }
-
-//        LibC.INSTANCE.munlock(pointer, new NativeLong(QUEUE_CACHE_SIZE));
-
-        return msgList;
-    }
-
-    ArrayList<byte[]> getMessage(int offset, int start, int end, ReadPointer readPointer) {
-
-        ArrayList<byte[]> msgList = new ArrayList<>();
-
-        int pos = offset;
-        int idx = 0;
-
-        if (readPointer.getCurrentOffset() == offset && readPointer.getCurrentIndex() == start) {
-            pos = readPointer.getCurrentPos();
-            idx = readPointer.getCurrentIndex();
-        }
-
-        byte size;
-
-        ByteBuffer byteBuffer = this.mappedByteBuffer.slice();
-
-        while (idx < end){
-            /*读取消息长度*/
-            byteBuffer.position(pos);
-            size = byteBuffer.get();
-
-            if (size == 0) break;
-
-            /*读取消息体*/
             byte[] msg = new byte[size];
-            byteBuffer.position(pos+1);
             byteBuffer.get(msg, 0, size);
-
-            if (idx >= start)
-                msgList.add(msg);
-
-            pos += 1 + size;
-            idx++;
+            msgList.add(msg);
         }
 
-        readPointer.setCurrentIndex(idx);
-        readPointer.setCurrentPos(pos);
-        readPointer.setCurrentOffset(offset);
         return msgList;
     }
-
 
     void getMessage(int offset, DirectQueueCache cache) {
 

@@ -29,8 +29,6 @@ class DefaultMessageStore {
 
     private AtomicBoolean[] queueLock = new AtomicBoolean[MAX_QUEUE_NUM];
 
-    private ReadPointer[] readPointers = new ReadPointer[MAX_QUEUE_NUM];
-
     private int numCommitLog;
 
     private final ArrayList<CommitLogLite> commitLogList;
@@ -50,7 +48,6 @@ class DefaultMessageStore {
             queueLock[topicId] = new AtomicBoolean(false);
             queueMsgCache[topicId] = new DirectQueueCache();
             queueIndexTable[topicId] = new QueueIndex();
-            readPointers[topicId] = new ReadPointer();
         }
     }
 
@@ -129,7 +126,7 @@ class DefaultMessageStore {
                 int end = Math.min(start + nums, SparseSize);
                 try {
                     int phyOffset = index.getIndex(off);
-                    msgList.addAll(commitLog.getMessage(phyOffset, start, end, readPointers[topicId]));
+                    msgList.addAll(commitLog.getMessage(phyOffset, start, end));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

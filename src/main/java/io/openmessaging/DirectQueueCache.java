@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static io.openmessaging.config.MessageStoreConfig.MESSAGE_SIZE;
 import static io.openmessaging.config.MessageStoreConfig.QUEUE_CACHE_SIZE;
 
 
@@ -41,7 +42,8 @@ class DirectQueueCache {
     int addMessage(byte[] msg) {
         byteBuffer.put((byte) msg.length);
         byteBuffer.put(msg);
-        return ++size;
+        byteBuffer.position(++size * MESSAGE_SIZE);
+        return size;
     }
 
     ByteBuffer getByteBuffer() {
@@ -70,25 +72,13 @@ class DirectQueueCache {
 
         ArrayList<byte[]> msgList = new ArrayList<>();
 
-        byte index = 0;
-
-        byteBuffer.position(0);
-        byteBuffer.limit(QUEUE_CACHE_SIZE);
-
-        while (index < end) {
-            /*读取消息长度*/
+        for (int i = start; i < end; i++) {
+            byteBuffer.position(i * MESSAGE_SIZE);
             byte size = byteBuffer.get();
             if (size == 0) break;
-
-            if (index >= start){
-                /*读取消息体*/
-                byte[] msg = new byte[size];
-                byteBuffer.get(msg, 0, size);
-                msgList.add(msg);
-            } else {
-                byteBuffer.position(byteBuffer.position() + size);
-            }
-            index++;
+            byte[] msg = new byte[size];
+            byteBuffer.get(msg, 0, size);
+            msgList.add(msg);
         }
 
         return msgList;
