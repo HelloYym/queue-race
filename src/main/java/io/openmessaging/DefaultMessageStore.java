@@ -51,6 +51,7 @@ class DefaultMessageStore {
 //            queueLock[topicId] = new ReentrantLock();
             queueLock[topicId] = new AtomicBoolean(false);
             queueMsgCache[topicId] = new DirectQueueCache();
+            queueIndexTable[topicId] = new QueueIndex();
 //            readMsgCache[topicId] = new ReadQueueCache(queueMsgCache[topicId].getByteBuffer());
         }
     }
@@ -126,7 +127,7 @@ class DefaultMessageStore {
                 nums -= (end - start);
                 off += (end - start);
             }
-            queueMsgCache[topicId].munlock();
+//            queueMsgCache[topicId].munlock();
             queueMsgCache[topicId] = null;
 //            queueLock[topicId].unlock();
         } else {

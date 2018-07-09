@@ -17,13 +17,18 @@ public class DefaultQueueStoreImpl extends QueueStore {
 
     @Override
     void put(String queueName, byte[] message) {
-        messageStore.putMessage(TopicIdGenerator.getInstance().getId(queueName), message);
-//        messageStore.putMessage(queueName, message);
+
+        int queueId = Integer.parseInt(queueName.substring(6));
+        messageStore.putMessage(queueId, message);
+
+//        messageStore.putMessage(TopicIdGenerator.getInstance().getId(queueName), message);
     }
 
     @Override
     Collection<byte[]> get(String queueName, long offset, long num) {
-        return messageStore.getMessage(TopicIdGenerator.getInstance().getId(queueName), (int) offset, (int) num);
-//        return messageStore.getMessage(queueName, (int) offset, (int) num);
+        int queueId = Integer.parseInt(queueName.substring(6));
+        return messageStore.getMessage(queueId, (int) offset, (int) num);
+
+//        return messageStore.getMessage(TopicIdGenerator.getInstance().getId(queueName), (int) offset, (int) num);
     }
 }

@@ -27,9 +27,9 @@ class DirectQueueCache {
 
     DirectQueueCache() {
         this.byteBuffer = ByteBuffer.allocateDirect(QUEUE_CACHE_SIZE);
-        final long address = ((DirectBuffer) byteBuffer).address();
-        Pointer pointer = new Pointer(address);
-        LibC.INSTANCE.mlock(pointer, new NativeLong(QUEUE_CACHE_SIZE));
+//        final long address = ((DirectBuffer) byteBuffer).address();
+//        Pointer pointer = new Pointer(address);
+//        LibC.INSTANCE.mlock(pointer, new NativeLong(QUEUE_CACHE_SIZE));
     }
 
     public void munlock() {
