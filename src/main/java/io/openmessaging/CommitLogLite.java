@@ -187,6 +187,48 @@ public class CommitLogLite {
         return msgList;
     }
 
+    ArrayList<byte[]> getMessage(int offset, int start, int end, ReadPointer readPointer) {
+
+        ArrayList<byte[]> msgList = new ArrayList<>();
+
+        int pos = offset;
+        int idx = 0;
+
+        if (readPointer.getCurrentOffset() == offset && readPointer.getCurrentIndex() == start) {
+            pos = readPointer.getCurrentPos();
+            idx = readPointer.getCurrentIndex();
+        }
+
+        byte size;
+
+        ByteBuffer byteBuffer = this.mappedByteBuffer.slice();
+
+        while (idx < end){
+            /*读取消息长度*/
+            byteBuffer.position(pos);
+            size = byteBuffer.get();
+
+            if (size == 0) break;
+
+            /*读取消息体*/
+            byte[] msg = new byte[size];
+            byteBuffer.position(pos+1);
+            byteBuffer.get(msg, 0, size);
+
+            if (idx >= start)
+                msgList.add(msg);
+
+            pos += 1 + size;
+            idx++;
+        }
+
+        readPointer.setCurrentIndex(idx);
+        readPointer.setCurrentPos(pos);
+        readPointer.setCurrentOffset(offset);
+        return msgList;
+    }
+
+
     void getMessage(int offset, DirectQueueCache cache) {
 
         try {

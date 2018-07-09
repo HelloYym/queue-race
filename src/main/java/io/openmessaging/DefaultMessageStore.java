@@ -33,6 +33,7 @@ class DefaultMessageStore {
 
     private AtomicBoolean[] queueLock = new AtomicBoolean[MAX_QUEUE_NUM];
 
+    private ReadPointer[] readPointers = new ReadPointer[MAX_QUEUE_NUM];
 
     private int numCommitLog;
 
@@ -51,17 +52,20 @@ class DefaultMessageStore {
             queueLock[topicId] = new AtomicBoolean(false);
             queueMsgCache[topicId] = new DirectQueueCache();
             queueIndexTable[topicId] = new QueueIndex();
+            readPointers[topicId] = new ReadPointer();
         }
     }
 
-    private CommitLogLite getCommitLog(int topicId) {
-        return commitLogList.get(topicId % numCommitLog);
+    private CommitLogLite getCommitLog(int index) {
+//        return commitLogList.get(index);
+        return commitLogList.get(index % numCommitLog);
     }
 
     void putMessage(int topicId, byte[] msg) {
         DirectQueueCache cache = queueMsgCache[topicId];
         int size = cache.addMessage(msg);
         if (size == SparseSize) {
+//            int offset = getCommitLog(queueIndexTable[topicId].getSize()).putMessage(cache.getByteBuffer());
             int offset = getCommitLog(topicId).putMessage(cache.getByteBuffer());
             queueIndexTable[topicId].putIndex(offset);
             cache.clear();
@@ -73,6 +77,7 @@ class DefaultMessageStore {
         int size = cache.getSize();
         if (size == 0) return;
         if (size < SparseSize) cache.putTerminator();
+//        int offset = getCommitLog(queueIndexTable[topicId].getSize()).putMessage(cache.getByteBuffer());
         int offset = getCommitLog(topicId).putMessage(cache.getByteBuffer());
         queueIndexTable[topicId].putIndex(offset);
         cache.clear();
@@ -92,6 +97,7 @@ class DefaultMessageStore {
             flushCache(topicId);
 
             while (nums > 0 && index.getIndex(off) != -1) {
+//                CommitLogLite commitLog = getCommitLog(off / SparseSize);
                 int start = off % SparseSize;
                 int end = Math.min(start + nums, SparseSize);
                 try {
@@ -111,11 +117,12 @@ class DefaultMessageStore {
 //            queueLock[topicId].unlock();
         } else {
             while (nums > 0 && index.getIndex(off) != -1) {
+//                CommitLogLite commitLog = getCommitLog(off / SparseSize);
                 int start = off % SparseSize;
                 int end = Math.min(start + nums, SparseSize);
                 try {
                     int phyOffset = index.getIndex(off);
-                    msgList.addAll(commitLog.getMessage(phyOffset, start, end));
+                    msgList.addAll(commitLog.getMessage(phyOffset, start, end, readPointers[topicId]));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

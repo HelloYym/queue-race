@@ -15,7 +15,7 @@ public class MessageStoreConfig {
     private String storePathRootDir = "alidata1/race2018/data";
 
     //稀疏索引，每存多少个写一个索引
-    public static final int SparseSize = 10;
+    public static final int SparseSize = 20;
 
     public static final int MAX_QUEUE_NUM = 1000100;
 
@@ -25,6 +25,8 @@ public class MessageStoreConfig {
 
     // CommitLog file size,default is 1G
     private int fileSizeCommitLog = Integer.MAX_VALUE;
+
+//    private int numCommitLog = MAX_MESSAGE_NUM_PER_QUEUE / SparseSize;
 
     private int numCommitLog = 70;
 
