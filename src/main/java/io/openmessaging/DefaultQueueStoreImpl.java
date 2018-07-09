@@ -23,7 +23,7 @@ public class DefaultQueueStoreImpl extends QueueStore {
     @Override
     void put(String queueName, byte[] message) {
 
-        int queueId = Integer.parseInt(queueName.substring(6));
+        int queueId = TopicIdGenerator.getInstance().getId(queueName);
         messageStore.putMessage(queueId, message);
 
 //        messageStore.putMessage(TopicIdGenerator.getInstance().getId(queueName), message);
@@ -31,7 +31,7 @@ public class DefaultQueueStoreImpl extends QueueStore {
 
     @Override
     Collection<byte[]> get(String queueName, long offset, long num) {
-        int queueId = Integer.parseInt(queueName.substring(6));
+        int queueId = TopicIdGenerator.getInstance().getId(queueName);
         return messageStore.getMessage(queueId, (int) offset, (int) num);
     }
 }

@@ -104,6 +104,41 @@ public class CommitLogLite {
             return -1;
     }
 
+//    public ArrayList<byte[]> getMessage(int offset, int start, int end) {
+//
+//        ArrayList<byte[]> msgList = new ArrayList<>();
+//
+//        int indexPos = offset;
+//        int msgPos = offset + SparseSize;
+//
+//        ByteBuffer byteBuffer = this.mappedByteBuffer.slice();
+//
+//        for (int i = 0; i < start; i++) {
+//            byteBuffer.position(indexPos);
+//            msgPos += byteBuffer.get();
+//            indexPos++;
+//        }
+//
+//        for (int i = start; i <= end; i++) {
+//
+//            /*读取消息长度*/
+//            byteBuffer.position(indexPos);
+//            int size = byteBuffer.get();
+//
+//            /*读取消息体*/
+//            byte[] msg = new byte[size];
+//            byteBuffer.position(msgPos);
+//            byteBuffer.get(msg, 0, size);
+//
+//            msgList.add(msg);
+//
+//            msgPos += size;
+//            indexPos++;
+//        }
+//
+//        return msgList;
+//    }
+
 
     //写一串数据
     int putMessage(ByteBuffer byteBuffer) {
