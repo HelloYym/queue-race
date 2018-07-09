@@ -33,6 +33,5 @@ public class DefaultQueueStoreImpl extends QueueStore {
     Collection<byte[]> get(String queueName, long offset, long num) {
         int queueId = Integer.parseInt(queueName.substring(6));
         return messageStore.getMessage(queueId, (int) offset, (int) num);
-
     }
 }

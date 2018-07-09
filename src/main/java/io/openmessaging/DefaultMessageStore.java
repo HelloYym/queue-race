@@ -48,11 +48,9 @@ class DefaultMessageStore {
             this.commitLogList.add(new CommitLogLite(messageStoreConfig.getFileSizeCommitLog(), getMessageStoreConfig().getStorePathCommitLog()));
 
         for (int topicId = 0; topicId < MAX_QUEUE_NUM; topicId++){
-//            queueLock[topicId] = new ReentrantLock();
             queueLock[topicId] = new AtomicBoolean(false);
             queueMsgCache[topicId] = new DirectQueueCache();
             queueIndexTable[topicId] = new QueueIndex();
-//            readMsgCache[topicId] = new ReadQueueCache(queueMsgCache[topicId].getByteBuffer());
         }
     }
 
@@ -70,14 +68,6 @@ class DefaultMessageStore {
         }
     }
 
-//    private void flushCache() {
-//        for (int topicId = 0; topicId < MAX_QUEUE_NUM; topicId++){
-//            flushCache(topicId);
-//        }
-////        queueMsgCache = null;
-//        flushComplete = true;
-//    }
-
     private void flushCache(int topicId) {
         DirectQueueCache cache = queueMsgCache[topicId];
         int size = cache.getSize();
@@ -89,18 +79,6 @@ class DefaultMessageStore {
     }
 
     List<byte[]> getMessage(int topicId, int offset, int maxMsgNums) {
-
-//        if (consumeStart.compareAndSet(false, true)) {
-//            flushCache();
-//        } else {
-//            while (!flushComplete) {
-//                try {
-//                    Thread.sleep(1);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }
 
         int off = offset;
         int nums = maxMsgNums;
