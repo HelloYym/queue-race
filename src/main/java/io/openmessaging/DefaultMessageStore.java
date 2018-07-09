@@ -33,7 +33,7 @@ class DefaultMessageStore {
 
     private final CommitLogLite[] commitLogList = new CommitLogLite[numCommitLog];
 
-    private boolean flushComplete = false;
+    private boolean[] flushComplete = new boolean[MAX_QUEUE_NUM];
 
     private final AtomicBoolean consumeStart = new AtomicBoolean(false);
 
@@ -67,8 +67,8 @@ class DefaultMessageStore {
     private void flushAll() {
         for (int i = 0 ; i < MAX_QUEUE_NUM; i++) {
             flushCache(i);
+            flushComplete[i] = true;
         }
-        flushComplete = true;
     }
 
     private void flushCache(int topicId) {
@@ -86,7 +86,7 @@ class DefaultMessageStore {
         if (consumeStart.compareAndSet(false, true)) {
             flushAll();
         } else {
-            while (!flushComplete) {
+            while (!flushComplete[topicId]) {
                 try {
                     Thread.sleep(1);
                 } catch (InterruptedException e) {

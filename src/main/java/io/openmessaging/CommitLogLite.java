@@ -81,7 +81,7 @@ public class CommitLogLite {
     int putMessage(ByteBuffer byteBuffer) {
 
         byteBuffer.flip();
-        int currentPos = this.wrotePosition.getAndAdd(1024);
+        int currentPos = this.wrotePosition.getAndAdd(byteBuffer.limit());
         try {
             this.fileChannel.write(byteBuffer, currentPos);
         } catch (IOException e) {
