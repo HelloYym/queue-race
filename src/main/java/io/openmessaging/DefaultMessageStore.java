@@ -11,6 +11,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static io.openmessaging.config.MessageStoreConfig.MAX_QUEUE_NUM;
 import static io.openmessaging.config.MessageStoreConfig.SparseSize;
+import static io.openmessaging.config.MessageStoreConfig.numCommitLog;
+
 
 /**
  * Created with IntelliJ IDEA.
@@ -29,9 +31,7 @@ class DefaultMessageStore {
 
     private AtomicBoolean[] queueLock = new AtomicBoolean[MAX_QUEUE_NUM];
 
-    private int numCommitLog;
-
-    private final ArrayList<CommitLogLite> commitLogList;
+    private final CommitLogLite[] commitLogList = new CommitLogLite[numCommitLog];
 
     private boolean flushComplete = false;
 
@@ -39,10 +39,9 @@ class DefaultMessageStore {
 
     DefaultMessageStore(final MessageStoreConfig messageStoreConfig) {
         this.messageStoreConfig = messageStoreConfig;
-        this.commitLogList = new ArrayList<>();
-        this.numCommitLog = messageStoreConfig.getNumCommitLog();
+
         for (int i = 0; i < numCommitLog; i++)
-            this.commitLogList.add(new CommitLogLite(messageStoreConfig.getFileSizeCommitLog(), getMessageStoreConfig().getStorePathCommitLog()));
+            commitLogList[i] = (new CommitLogLite(messageStoreConfig.getFileSizeCommitLog(), getMessageStoreConfig().getStorePathCommitLog()));
 
         for (int topicId = 0; topicId < MAX_QUEUE_NUM; topicId++){
             queueLock[topicId] = new AtomicBoolean(false);
@@ -52,7 +51,7 @@ class DefaultMessageStore {
     }
 
     private CommitLogLite getCommitLog(int index) {
-        return commitLogList.get(index % numCommitLog);
+        return commitLogList[index % numCommitLog];
     }
 
     void putMessage(int topicId, byte[] msg) {
@@ -111,7 +110,7 @@ class DefaultMessageStore {
                 try {
                     DirectQueueCache cache = queueMsgCache[topicId];
                     int phyOffset = index.getIndex(off);
-                    commitLog.getMessage(phyOffset, cache);
+                    commitLog.getMessage(phyOffset, cache, start, end);
                     msgList.addAll(cache.getMessage(start, end));
                 } catch (Exception e) {
                     e.printStackTrace();

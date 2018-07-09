@@ -49,7 +49,7 @@ public class DemoTest {
         //队列的数量
         queueNum = 100000;
         //正确性检测的次数
-        checkNum = 10000;
+        checkNum = 100000;
         //消费阶段的总队列数量
         checkQueueNum = 20000;
         //发送的线程数量

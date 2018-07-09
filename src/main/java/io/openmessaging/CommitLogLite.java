@@ -108,10 +108,14 @@ public class CommitLogLite {
         return msgList;
     }
 
-    void getMessage(int offset, DirectQueueCache cache) {
+    void getMessage(int offset, DirectQueueCache cache, int start, int end) {
 
         try {
-            fileChannel.read(cache.getWriteBuffer(), offset);
+//            fileChannel.read(cache.getWriteBuffer(), offset);
+            ByteBuffer byteBuffer = cache.getWriteBuffer();
+            byteBuffer.position(start * MESSAGE_SIZE);
+            byteBuffer.limit(end * MESSAGE_SIZE);
+            fileChannel.read(byteBuffer, offset + start * MESSAGE_SIZE);
 //            cache.setOffset(offset);
         } catch (IOException e) {
             e.printStackTrace();

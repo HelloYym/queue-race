@@ -30,17 +30,13 @@ public class MessageStoreConfig {
 
 //    private int numCommitLog = MAX_MESSAGE_NUM_PER_QUEUE / SparseSize;
 
-    private int numCommitLog = 70;
+    public static final int numCommitLog = 70;
 
     //The directory in which the commitlog is kept
     private String storePathCommitLog = storePathRootDir + File.separator + "commitlog";
 
     public int getFileSizeCommitLog() {
         return fileSizeCommitLog;
-    }
-
-    public int getNumCommitLog() {
-        return numCommitLog;
     }
 
     // CommitLog flush interval
