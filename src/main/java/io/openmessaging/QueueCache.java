@@ -25,6 +25,10 @@ public class QueueCache {
         return msgList;
     }
 
+    public List<byte[]> getMsgList(int start, int end) {
+        return msgList.subList(start, end);
+    }
+
     public int size() {
         return msgList.size();
     }

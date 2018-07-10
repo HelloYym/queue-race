@@ -26,6 +26,8 @@ class DirectQueueCache {
 
     private byte size = 0;
 
+    private int offset = -1;
+
     DirectQueueCache() {
         this.byteBuffer = ByteBuffer.allocateDirect(QUEUE_CACHE_SIZE);
 //        final long address = ((DirectBuffer) byteBuffer).address();
@@ -55,6 +57,13 @@ class DirectQueueCache {
         byteBuffer.put((byte) 0);
     }
 
+    public int getOffset() {
+        return offset;
+    }
+
+    public void setOffset(int offset) {
+        this.offset = offset;
+    }
 
     public byte getSize() {
         return size;
