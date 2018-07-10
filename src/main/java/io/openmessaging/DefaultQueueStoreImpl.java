@@ -15,6 +15,8 @@ public class DefaultQueueStoreImpl extends QueueStore {
 
     private final DefaultMessageStore messageStore;
 
+    private TopicIdGenerator idGenerator = new TopicIdGenerator();
+
     public DefaultQueueStoreImpl() {
         this.messageStoreConfig = new MessageStoreConfig();
         this.messageStore = new DefaultMessageStore(messageStoreConfig);
@@ -23,7 +25,7 @@ public class DefaultQueueStoreImpl extends QueueStore {
     @Override
     void put(String queueName, byte[] message) {
 
-        int queueId = TopicIdGenerator.getInstance().getId(queueName);
+        int queueId = idGenerator.getId(queueName);
         messageStore.putMessage(queueId, message);
 
 //        messageStore.putMessage(TopicIdGenerator.getInstance().getId(queueName), message);
@@ -31,7 +33,7 @@ public class DefaultQueueStoreImpl extends QueueStore {
 
     @Override
     Collection<byte[]> get(String queueName, long offset, long num) {
-        int queueId = TopicIdGenerator.getInstance().getId(queueName);
+        int queueId = idGenerator.getId(queueName);
         return messageStore.getMessage(queueId, (int) offset, (int) num);
     }
 }

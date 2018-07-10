@@ -15,17 +15,17 @@ import static io.openmessaging.config.MessageStoreConfig.MAX_QUEUE_NUM;
  */
 public class TopicIdGenerator {
 
-    private static int[] factors = {1, 10, 100, 1000, 10000, 100000, 1000000};
-
-    private static TopicIdGenerator instance = new TopicIdGenerator();
+    public int[][] factors = new int[7][10];
 
     private AtomicInteger id = new AtomicInteger();
 
-    private TopicIdGenerator() {
-    }
-
-    public static TopicIdGenerator getInstance() {
-        return instance;
+    public TopicIdGenerator() {
+        int k = 1;
+        for (int i = 0; i < 7; i++) {
+            for (int j = 1; j < 10; j++)
+                factors[i][j] = j * k;
+            k *= 10;
+        }
     }
 
     public int getId(String topic) {
@@ -45,7 +45,7 @@ public class TopicIdGenerator {
         for (int i = topicName.length() - 1; i >= 0; i--) {
             int num = topicName.charAt(i) - '0';
             if (num >= 0 && num < 10) {
-                id += num * factors[k++];
+                id += factors[k++][num];
             } else {
                 break;
             }
