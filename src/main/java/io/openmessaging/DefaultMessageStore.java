@@ -121,7 +121,7 @@ class DefaultMessageStore {
                 nums -= (end - start);
                 off += (end - start);
             }
-//            ((DirectBuffer)cache.getByteBuffer()).cleaner().clean();
+            ((DirectBuffer)cache.getByteBuffer()).cleaner().clean();
             queueMsgCache[topicId] = null;
         } else {
             while (nums > 0 && index.getIndex(off) != -1) {
