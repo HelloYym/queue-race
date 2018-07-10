@@ -1,6 +1,7 @@
 package io.openmessaging;
 
 import io.openmessaging.config.MessageStoreConfig;
+import sun.nio.ch.DirectBuffer;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -106,12 +107,12 @@ class DefaultMessageStore {
         List<byte[]> msgList = new ArrayList<>(maxMsgNums);
 
         if (queueLock[topicId].compareAndSet(false, true)) {
+            DirectQueueCache cache = queueMsgCache[topicId];
             while (nums > 0 && index.getIndex(off) != -1) {
                 int start = off % SparseSize;
                 int end = Math.min(start + nums, SparseSize);
                 int phyOffset = index.getIndex(off);
                 try {
-                    DirectQueueCache cache = queueMsgCache[topicId];
                     commitLog.getMessage(phyOffset, cache, start, end);
                     msgList.addAll(cache.getMessage(start, end));
                 } catch (Exception e) {
@@ -120,6 +121,7 @@ class DefaultMessageStore {
                 nums -= (end - start);
                 off += (end - start);
             }
+//            ((DirectBuffer)cache.getByteBuffer()).cleaner().clean();
             queueMsgCache[topicId] = null;
         } else {
             while (nums > 0 && index.getIndex(off) != -1) {
