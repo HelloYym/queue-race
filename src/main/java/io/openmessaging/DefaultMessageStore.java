@@ -40,17 +40,20 @@ class DefaultMessageStore {
 
     private final AtomicBoolean consumeStart = new AtomicBoolean(false);
 
+    private Lock[] bufferLock = new ReentrantLock[MAX_QUEUE_NUM];
+
     DefaultMessageStore(final MessageStoreConfig messageStoreConfig) {
         this.messageStoreConfig = messageStoreConfig;
 
         for (int i = 0; i < numCommitLog; i++)
             commitLogList[i] = (new CommitLogLite(messageStoreConfig.getFileSizeCommitLog(), getMessageStoreConfig().getStorePathCommitLog()));
 
-        for (int topicId = 0; topicId < MAX_QUEUE_NUM; topicId++){
+        for (int topicId = 0; topicId < MAX_QUEUE_NUM; topicId++) {
             queueLock[topicId] = new AtomicBoolean(false);
             queueMsgCache[topicId] = new DirectQueueCache();
             queueIndexTable[topicId] = new QueueIndex();
             queueCache[topicId] = new QueueCache();
+            bufferLock[topicId] = new ReentrantLock(false);
         }
     }
 
@@ -69,7 +72,7 @@ class DefaultMessageStore {
     }
 
     private void flushAll() {
-        for (int i = 0 ; i < MAX_QUEUE_NUM; i++) {
+        for (int i = 0; i < MAX_QUEUE_NUM; i++) {
             flushCache(i);
             flushComplete[i] = true;
         }
@@ -106,23 +109,33 @@ class DefaultMessageStore {
 
         List<byte[]> msgList = new ArrayList<>(maxMsgNums);
 
-        if (queueLock[topicId].compareAndSet(false, true)) {
-            DirectQueueCache cache = queueMsgCache[topicId];
-            while (nums > 0 && index.getIndex(off) != -1) {
-                int start = off % SparseSize;
-                int end = Math.min(start + nums, SparseSize);
-                int phyOffset = index.getIndex(off);
-                try {
-                    commitLog.getMessage(phyOffset, cache, start, end);
-                    msgList.addAll(cache.getMessage(start, end));
-                } catch (Exception e) {
-                    e.printStackTrace();
+        /*消费开始*/
+        if (offset == 0) queueLock[topicId].set(true);
+
+
+        if (!queueLock[topicId].get()) {
+            bufferLock[topicId].lock();
+
+            try {
+                DirectQueueCache cache = queueMsgCache[topicId];
+                while (nums > 0 && index.getIndex(off) != -1) {
+                    int start = off % SparseSize;
+                    int end = Math.min(start + nums, SparseSize);
+                    int phyOffset = index.getIndex(off);
+                    try {
+                        commitLog.getMessage(phyOffset, cache, start, end);
+                        msgList.addAll(cache.getMessage(start, end));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    nums -= (end - start);
+                    off += (end - start);
                 }
-                nums -= (end - start);
-                off += (end - start);
+//                ((DirectBuffer) cache.getByteBuffer()).cleaner().clean();
+
+            } finally {
+                bufferLock[topicId].unlock();
             }
-            ((DirectBuffer)cache.getByteBuffer()).cleaner().clean();
-            queueMsgCache[topicId] = null;
         } else {
             while (nums > 0 && index.getIndex(off) != -1) {
                 int start = off % SparseSize;
