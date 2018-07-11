@@ -1,8 +1,5 @@
 package io.openmessaging;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static io.openmessaging.config.MessageStoreConfig.INDEX_NUM;
 import static io.openmessaging.config.MessageStoreConfig.SparseSize;
 

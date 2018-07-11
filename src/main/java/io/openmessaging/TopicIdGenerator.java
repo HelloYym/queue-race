@@ -1,10 +1,6 @@
 package io.openmessaging;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static io.openmessaging.config.MessageStoreConfig.MAX_QUEUE_NUM;
 
 /**
  * Created with IntelliJ IDEA.
