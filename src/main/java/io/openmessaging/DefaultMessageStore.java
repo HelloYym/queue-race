@@ -65,9 +65,7 @@ class DefaultMessageStore {
 
     /** 保证100w个队列平均分配到numCommilog个文件中 **/
     private CommitLogLite getCommitLog(int index) {
-//        return commitLogList[index % QUEUE_NUM_PER_COMMITLOG];
-        int idx = index / QUEUE_NUM_PER_COMMITLOG;
-        return commitLogList[idx < 60 ? idx : 59];
+        return commitLogList[index % numCommitLog];
     }
 
     /** 写消息到文件 **/
