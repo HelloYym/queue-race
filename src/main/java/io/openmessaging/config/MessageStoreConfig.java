@@ -15,7 +15,9 @@ public class MessageStoreConfig {
     private String storePathRootDir = "alidata1/race2018/data";
 
     //稀疏索引，每存多少个写一个索引
-    public static final int SparseSize = 20;
+//    public static final int SparseSize = 20;
+
+    public static final short[] SparseSize = {10, 20};
 
     public static final int MESSAGE_SIZE = 60;
 
@@ -23,7 +25,7 @@ public class MessageStoreConfig {
 
     public static final int MAX_MESSAGE_NUM_PER_QUEUE = 2200;
 
-    public static final int QUEUE_CACHE_SIZE = MESSAGE_SIZE * SparseSize;
+//    public static final int QUEUE_CACHE_SIZE = MESSAGE_SIZE * SparseSize;
 
     // CommitLog file size,default is 1G
     private int fileSizeCommitLog = Integer.MAX_VALUE;
@@ -48,11 +50,6 @@ public class MessageStoreConfig {
     // How many pages are to be flushed when flush CommitLog
     private int flushCommitLogLeastPages = 4;
     private int flushCommitLogThoroughInterval = 1000 * 10;
-
-
-    public int getSparseSize() {
-        return SparseSize;
-    }
 
     public int getFlushIntervalCommitLog() {
         return flushIntervalCommitLog;

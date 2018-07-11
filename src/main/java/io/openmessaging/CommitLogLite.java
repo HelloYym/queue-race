@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.openmessaging.config.MessageStoreConfig.MESSAGE_SIZE;
-import static io.openmessaging.config.MessageStoreConfig.QUEUE_CACHE_SIZE;
+//import static io.openmessaging.config.MessageStoreConfig.QUEUE_CACHE_SIZE;
 import static io.openmessaging.config.MessageStoreConfig.SparseSize;
 
 /**
@@ -123,10 +123,10 @@ public class CommitLogLite {
         }
     }
 
-    void getMessage(int offset, DirectQueueCache cache) {
-
-        getMessage(offset, cache, 0, SparseSize);
-    }
+//    void getMessage(int offset, DirectQueueCache cache) {
+//
+//        getMessage(offset, cache, 0, SparseSize);
+//    }
 
     public void warmup(){
         final long address = ((DirectBuffer) (this.mappedByteBuffer)).address();

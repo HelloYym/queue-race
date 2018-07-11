@@ -6,6 +6,7 @@ import sun.nio.ch.DirectBuffer;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -34,6 +35,8 @@ class DefaultMessageStore {
 
     private AtomicBoolean[] queueLock = new AtomicBoolean[MAX_QUEUE_NUM];
 
+    private short[] sparseSizeList = new short[MAX_QUEUE_NUM];
+
     private final CommitLogLite[] commitLogList = new CommitLogLite[numCommitLog];
 
     private boolean[] flushComplete = new boolean[MAX_QUEUE_NUM];
@@ -48,10 +51,13 @@ class DefaultMessageStore {
         for (int i = 0; i < numCommitLog; i++)
             commitLogList[i] = (new CommitLogLite(messageStoreConfig.getFileSizeCommitLog(), getMessageStoreConfig().getStorePathCommitLog()));
 
+
+        Random random = new Random();
         for (int topicId = 0; topicId < MAX_QUEUE_NUM; topicId++) {
+            sparseSizeList[topicId] = SparseSize[random.nextInt(SparseSize.length)];
             queueLock[topicId] = new AtomicBoolean(false);
-            queueMsgCache[topicId] = new DirectQueueCache();
-            queueIndexTable[topicId] = new QueueIndex();
+            queueMsgCache[topicId] = new DirectQueueCache(sparseSizeList[topicId]);
+            queueIndexTable[topicId] = new QueueIndex(sparseSizeList[topicId]);
             queueCache[topicId] = new QueueCache();
             bufferLock[topicId] = new ReentrantLock(false);
         }
@@ -64,7 +70,7 @@ class DefaultMessageStore {
     void putMessage(int topicId, byte[] msg) {
         DirectQueueCache cache = queueMsgCache[topicId];
         int size = cache.addMessage(msg);
-        if (size == SparseSize) {
+        if (size == sparseSizeList[topicId]) {
             int offset = getCommitLog(topicId).putMessage(cache.getByteBuffer());
             queueIndexTable[topicId].putIndex(offset);
             cache.clear();
@@ -119,8 +125,8 @@ class DefaultMessageStore {
             try {
                 DirectQueueCache cache = queueMsgCache[topicId];
                 while (nums > 0 && index.getIndex(off) != -1) {
-                    int start = off % SparseSize;
-                    int end = Math.min(start + nums, SparseSize);
+                    int start = off % sparseSizeList[topicId];
+                    int end = Math.min(start + nums, sparseSizeList[topicId]);
                     int phyOffset = index.getIndex(off);
                     try {
                         commitLog.getMessage(phyOffset, cache, start, end);
@@ -138,8 +144,8 @@ class DefaultMessageStore {
             }
         } else {
             while (nums > 0 && index.getIndex(off) != -1) {
-                int start = off % SparseSize;
-                int end = Math.min(start + nums, SparseSize);
+                int start = off % sparseSizeList[topicId];
+                int end = Math.min(start + nums, sparseSizeList[topicId]);
                 try {
                     int phyOffset = index.getIndex(off);
                     msgList.addAll(commitLog.getMessage(phyOffset, start, end));
@@ -152,8 +158,8 @@ class DefaultMessageStore {
             }
         }
         if (nums > 0) {
-            msgList.addAll(queueCache[topicId].getMsgList(off % SparseSize,
-                    Math.min(off % SparseSize + nums, queueCache[topicId].size())));
+            msgList.addAll(queueCache[topicId].getMsgList(off % sparseSizeList[topicId],
+                    Math.min(off % sparseSizeList[topicId] + nums, queueCache[topicId].size())));
         }
         return msgList;
     }

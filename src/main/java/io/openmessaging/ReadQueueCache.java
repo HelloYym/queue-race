@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static io.openmessaging.config.MessageStoreConfig.SparseSize;
-import static io.openmessaging.config.MessageStoreConfig.QUEUE_CACHE_SIZE;
+//import static io.openmessaging.config.MessageStoreConfig.QUEUE_CACHE_SIZE;
 
 
 /**
@@ -54,7 +54,7 @@ public class ReadQueueCache {
             pos = 0;
         }
         byteBuffer.position(pos);
-        byteBuffer.limit(QUEUE_CACHE_SIZE);
+//        byteBuffer.limit(QUEUE_CACHE_SIZE);
 
         byte size;
 

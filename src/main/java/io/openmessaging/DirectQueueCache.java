@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.openmessaging.config.MessageStoreConfig.MESSAGE_SIZE;
-import static io.openmessaging.config.MessageStoreConfig.QUEUE_CACHE_SIZE;
+//import static io.openmessaging.config.MessageStoreConfig.QUEUE_CACHE_SIZE;
 
 
 /**
@@ -28,18 +28,18 @@ class DirectQueueCache {
 
     private int offset = -1;
 
-    DirectQueueCache() {
-        this.byteBuffer = ByteBuffer.allocateDirect(QUEUE_CACHE_SIZE);
+    DirectQueueCache(int cacheSize) {
+        this.byteBuffer = ByteBuffer.allocateDirect(cacheSize * MESSAGE_SIZE);
 //        final long address = ((DirectBuffer) byteBuffer).address();
 //        Pointer pointer = new Pointer(address);
 //        LibC.INSTANCE.mlock(pointer, new NativeLong(QUEUE_CACHE_SIZE));
     }
 
-    public void munlock() {
-        final long address = ((DirectBuffer) byteBuffer).address();
-        Pointer pointer = new Pointer(address);
-        LibC.INSTANCE.munlock(pointer, new NativeLong(QUEUE_CACHE_SIZE));
-    }
+//    public void munlock() {
+//        final long address = ((DirectBuffer) byteBuffer).address();
+//        Pointer pointer = new Pointer(address);
+//        LibC.INSTANCE.munlock(pointer, new NativeLong(QUEUE_CACHE_SIZE));
+//    }
 
     int addMessage(byte[] msg) {
         byteBuffer.put((byte) msg.length);
