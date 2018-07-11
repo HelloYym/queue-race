@@ -1,7 +1,5 @@
 package io.openmessaging;
 
-import io.openmessaging.utils.UnsafeUtil;
-import sun.misc.Unsafe;
 import sun.nio.ch.DirectBuffer;
 
 import java.nio.ByteBuffer;
