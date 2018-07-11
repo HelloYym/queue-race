@@ -34,9 +34,10 @@ class DirectQueueCache {
 
 
     int addMessage(byte[] msg) {
-        UNSAFE.putByte(address + size * MESSAGE_SIZE, (byte) msg.length);
+        long pos = address + size * MESSAGE_SIZE;
+        UNSAFE.putByte(pos, (byte) msg.length);
         for (int i = 0; i < msg.length; i++) {
-            UNSAFE.putByte(address + size * MESSAGE_SIZE + i + 1, msg[i]);
+            UNSAFE.putByte(pos + i + 1, msg[i]);
         }
 
 //        byteBuffer.put((byte) msg.length);
@@ -89,8 +90,8 @@ class DirectQueueCache {
 
         /** Unsafe **/
 
+        long pos = address + start * MESSAGE_SIZE;
         for (int i = start; i < end; i++) {
-            long pos = address + i * MESSAGE_SIZE;
             byte size = UNSAFE.getByte(pos);
             if (size == 0) break;
             byte[] msg = new byte[size];
@@ -98,6 +99,7 @@ class DirectQueueCache {
                 msg[j] = UNSAFE.getByte(pos + j + 1);
             }
             msgList.add(msg);
+            pos += MESSAGE_SIZE;
         }
 
         return msgList;

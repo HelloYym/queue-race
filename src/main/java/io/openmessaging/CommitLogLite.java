@@ -19,9 +19,9 @@ import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.openmessaging.config.MessageStoreConfig.MESSAGE_SIZE;
-//import static io.openmessaging.config.MessageStoreConfig.QUEUE_CACHE_SIZE;
-import static io.openmessaging.config.MessageStoreConfig.SparseSize;
 import static io.openmessaging.utils.UnsafeUtil.UNSAFE;
+
+//import static io.openmessaging.config.MessageStoreConfig.QUEUE_CACHE_SIZE;
 
 /**
  * Created by IntelliJ IDEA.
@@ -111,9 +111,8 @@ public class CommitLogLite {
         /** Unsafe **/
 
 
-        long address = ((DirectBuffer) mappedByteBuffer).address();
+        long pos = ((DirectBuffer) mappedByteBuffer).address() + offset + start * MESSAGE_SIZE;
         for (int i = start; i < end; i++) {
-            long pos = address + offset + i * MESSAGE_SIZE;
             byte size = UNSAFE.getByte(pos);
             if (size == 0) break;
             byte[] msg = new byte[size];
@@ -121,6 +120,7 @@ public class CommitLogLite {
                 msg[j] = UNSAFE.getByte(pos + j + 1);
             }
             msgList.add(msg);
+            pos += MESSAGE_SIZE;
         }
 
         return msgList;
