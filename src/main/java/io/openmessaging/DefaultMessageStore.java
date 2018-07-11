@@ -1,9 +1,7 @@
 package io.openmessaging;
 
 import io.openmessaging.config.MessageStoreConfig;
-import sun.nio.ch.DirectBuffer;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -11,10 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static com.sun.corba.se.impl.util.RepositoryId.cache;
-import static io.openmessaging.config.MessageStoreConfig.MAX_QUEUE_NUM;
-import static io.openmessaging.config.MessageStoreConfig.SparseSize;
-import static io.openmessaging.config.MessageStoreConfig.numCommitLog;
+import static io.openmessaging.config.MessageStoreConfig.*;
 
 
 /**

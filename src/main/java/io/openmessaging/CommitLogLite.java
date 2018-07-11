@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static io.openmessaging.config.MessageStoreConfig.MESSAGE_SIZE;
 //import static io.openmessaging.config.MessageStoreConfig.QUEUE_CACHE_SIZE;
 import static io.openmessaging.config.MessageStoreConfig.SparseSize;
+import static io.openmessaging.utils.UnsafeUtil.UNSAFE;
 
 /**
  * Created by IntelliJ IDEA.
@@ -96,14 +97,29 @@ public class CommitLogLite {
 
         ArrayList<byte[]> msgList = new ArrayList<>();
 
-        ByteBuffer byteBuffer = this.mappedByteBuffer.slice();
+//        ByteBuffer byteBuffer = this.mappedByteBuffer.slice();
+//
+//        for (int i = start; i < end; i++) {
+//            byteBuffer.position(offset + i * MESSAGE_SIZE);
+//            byte size = byteBuffer.get();
+//            if (size == 0) break;
+//            byte[] msg = new byte[size];
+//            byteBuffer.get(msg, 0, size);
+//            msgList.add(msg);
+//        }
 
+        /** Unsafe **/
+
+
+        long address = ((DirectBuffer) mappedByteBuffer).address();
         for (int i = start; i < end; i++) {
-            byteBuffer.position(offset + i * MESSAGE_SIZE);
-            byte size = byteBuffer.get();
+            long pos = address + offset + i * MESSAGE_SIZE;
+            byte size = UNSAFE.getByte(pos);
             if (size == 0) break;
             byte[] msg = new byte[size];
-            byteBuffer.get(msg, 0, size);
+            for (int j = 0; j < size; j++) {
+                msg[j] = UNSAFE.getByte(pos + j + 1);
+            }
             msgList.add(msg);
         }
 

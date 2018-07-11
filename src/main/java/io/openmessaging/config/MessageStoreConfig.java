@@ -17,8 +17,7 @@ public class MessageStoreConfig {
     //稀疏索引，每存多少个写一个索引
 //    public static final int SparseSize = 20;
 
-    public static final short[] SparseSize = {10, 20};
-
+    public static final short[] SparseSize = {20};
 
     public static final int MESSAGE_SIZE = 60;
 

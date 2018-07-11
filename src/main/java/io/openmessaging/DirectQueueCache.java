@@ -1,17 +1,14 @@
 package io.openmessaging;
 
-import com.sun.jna.NativeLong;
-import com.sun.jna.Pointer;
-import io.openmessaging.utils.LibC;
+import io.openmessaging.utils.UnsafeUtil;
+import sun.misc.Unsafe;
 import sun.nio.ch.DirectBuffer;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.openmessaging.config.MessageStoreConfig.MESSAGE_SIZE;
-//import static io.openmessaging.config.MessageStoreConfig.QUEUE_CACHE_SIZE;
+import static io.openmessaging.utils.UnsafeUtil.UNSAFE;
 
 
 /**
@@ -24,26 +21,26 @@ class DirectQueueCache {
 
     private ByteBuffer byteBuffer;
 
+    private final long address;
+
     private byte size = 0;
 
     private int offset = -1;
 
     DirectQueueCache(int cacheSize) {
         this.byteBuffer = ByteBuffer.allocateDirect(cacheSize * MESSAGE_SIZE);
-//        final long address = ((DirectBuffer) byteBuffer).address();
-//        Pointer pointer = new Pointer(address);
-//        LibC.INSTANCE.mlock(pointer, new NativeLong(QUEUE_CACHE_SIZE));
+        this.address = ((DirectBuffer) byteBuffer).address();
     }
 
-//    public void munlock() {
-//        final long address = ((DirectBuffer) byteBuffer).address();
-//        Pointer pointer = new Pointer(address);
-//        LibC.INSTANCE.munlock(pointer, new NativeLong(QUEUE_CACHE_SIZE));
-//    }
 
     int addMessage(byte[] msg) {
-        byteBuffer.put((byte) msg.length);
-        byteBuffer.put(msg);
+        UNSAFE.putByte(address + size * MESSAGE_SIZE, (byte) msg.length);
+        for (int i = 0; i < msg.length; i++) {
+            UNSAFE.putByte(address + size * MESSAGE_SIZE + i + 1, msg[i]);
+        }
+
+//        byteBuffer.put((byte) msg.length);
+//        byteBuffer.put(msg);
         byteBuffer.position(++size * MESSAGE_SIZE);
         return size;
     }
@@ -81,12 +78,25 @@ class DirectQueueCache {
 
         ArrayList<byte[]> msgList = new ArrayList<>();
 
+//        for (int i = start; i < end; i++) {
+//            byteBuffer.position(i * MESSAGE_SIZE);
+//            byte size = byteBuffer.get();
+//            if (size == 0) break;
+//            byte[] msg = new byte[size];
+//            byteBuffer.get(msg, 0, size);
+//            msgList.add(msg);
+//        }
+
+        /** Unsafe **/
+
         for (int i = start; i < end; i++) {
-            byteBuffer.position(i * MESSAGE_SIZE);
-            byte size = byteBuffer.get();
+            long pos = address + i * MESSAGE_SIZE;
+            byte size = UNSAFE.getByte(pos);
             if (size == 0) break;
             byte[] msg = new byte[size];
-            byteBuffer.get(msg, 0, size);
+            for (int j = 0; j < size; j++) {
+                msg[j] = UNSAFE.getByte(pos + j + 1);
+            }
             msgList.add(msg);
         }
 
