@@ -19,6 +19,7 @@ public class MessageStoreConfig {
 
     public static final short[] SparseSize = {10, 20};
 
+
     public static final int MESSAGE_SIZE = 60;
 
     public static final int MAX_QUEUE_NUM = 1000100;
