@@ -39,7 +39,7 @@ public class MessageStoreConfig {
     private int fileSizeCommitLog = Integer.MAX_VALUE;
 
     /** 存储消息的文件数量 **/
-    public static final int numCommitLog = 100;
+    public static final int numCommitLog = 56;
 
     public int getFileSizeCommitLog() {
         return fileSizeCommitLog;
