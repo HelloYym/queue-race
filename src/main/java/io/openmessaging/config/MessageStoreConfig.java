@@ -41,6 +41,8 @@ public class MessageStoreConfig {
     /** 存储消息的文件数量 **/
     public static final int numCommitLog = 60;
 
+    /** 每个文件中所存队列的数量 **/
+    public static final int QUEUE_NUM_PER_COMMITLOG = 16667;
 
     public int getFileSizeCommitLog() {
         return fileSizeCommitLog;

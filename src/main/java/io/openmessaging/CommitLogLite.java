@@ -16,8 +16,6 @@ import static io.openmessaging.config.MessageStoreConfig.MESSAGE_SIZE;
 import static io.openmessaging.config.MessageStoreConfig.numbers;
 import static io.openmessaging.utils.UnsafeUtil.UNSAFE;
 
-//import static io.openmessaging.config.MessageStoreConfig.QUEUE_CACHE_SIZE;
-
 /**
  * Created by IntelliJ IDEA.
  * User: yangyuming
