@@ -58,7 +58,7 @@ public class CommitLogLite {
         try {
             File file = new File(storePath + File.separator + fileName.getAndIncrement());
             this.fileChannel = new RandomAccessFile(file, "rw").getChannel();
-            this.mappedByteBuffer = this.fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, mappedFileSize);
+            this.mappedByteBuffer = this.fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, mappedFileSize);
 
 //            warmup();
 
