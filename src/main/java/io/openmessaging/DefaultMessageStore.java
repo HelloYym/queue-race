@@ -114,7 +114,7 @@ class DefaultMessageStore {
         if (offset == 0) queueLock[topicId].set(true);
 
 
-        if (!queueLock[topicId].get()) {
+//        if (!queueLock[topicId].get()) {
             bufferLock[topicId].lock();
 
             try {
@@ -137,25 +137,25 @@ class DefaultMessageStore {
             } finally {
                 bufferLock[topicId].unlock();
             }
-        } else {
-            while (nums > 0 && index.getIndex(off) != -1) {
-                int start = off % sparseSizeList[topicId];
-                int end = Math.min(start + nums, sparseSizeList[topicId]);
-                try {
-                    int phyOffset = index.getIndex(off);
-                    msgList.addAll(commitLog.getMessage(phyOffset, start, end));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                nums -= (end - start);
-                off += (end - start);
-            }
-        }
-        if (nums > 0) {
-            msgList.addAll(queueCache[topicId].getMsgList(off % sparseSizeList[topicId],
-                    Math.min(off % sparseSizeList[topicId] + nums, queueCache[topicId].size())));
-        }
+//        } else {
+//            while (nums > 0 && index.getIndex(off) != -1) {
+//                int start = off % sparseSizeList[topicId];
+//                int end = Math.min(start + nums, sparseSizeList[topicId]);
+//                try {
+//                    int phyOffset = index.getIndex(off);
+//                    msgList.addAll(commitLog.getMessage(phyOffset, start, end));
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//
+//                nums -= (end - start);
+//                off += (end - start);
+//            }
+//        }
+//        if (nums > 0) {
+//            msgList.addAll(queueCache[topicId].getMsgList(off % sparseSizeList[topicId],
+//                    Math.min(off % sparseSizeList[topicId] + nums, queueCache[topicId].size())));
+//        }
         return msgList;
     }
 

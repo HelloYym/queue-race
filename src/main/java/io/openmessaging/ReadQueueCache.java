@@ -2,11 +2,7 @@ package io.openmessaging;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-
-import static io.openmessaging.config.MessageStoreConfig.SparseSize;
 //import static io.openmessaging.config.MessageStoreConfig.QUEUE_CACHE_SIZE;
 
 
