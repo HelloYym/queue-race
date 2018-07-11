@@ -17,7 +17,7 @@ public class MessageStoreConfig {
     //稀疏索引，每存多少个写一个索引
     public static final int SparseSize = 20;
 
-    public static final int MESSAGE_SIZE = 60;
+    public static final int MESSAGE_SIZE = 59;
 
     public static final int MAX_QUEUE_NUM = 1000100;
 
