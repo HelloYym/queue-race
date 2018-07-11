@@ -12,6 +12,8 @@ import static io.openmessaging.config.MessageStoreConfig.SparseSize;
  * Date: 2018-07-06
  * Time: 上午10:12
  */
+
+/** 最后未刷盘部分存储到内存中 **/
 public class QueueCache {
     private List<byte[]> msgList = new ArrayList<>(SparseSize);
 

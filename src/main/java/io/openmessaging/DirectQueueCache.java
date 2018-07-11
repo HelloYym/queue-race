@@ -16,6 +16,8 @@ import static io.openmessaging.utils.UnsafeUtil.UNSAFE;
  * Date: 2018/7/6
  * Time: 下午8:15
  */
+
+/** 消息缓存类，使用的是directedbuffer **/
 class DirectQueueCache {
 
     private ByteBuffer byteBuffer;
@@ -24,45 +26,26 @@ class DirectQueueCache {
 
     private byte size = 0;
 
+    /** directedbuffer初始化 **/
     DirectQueueCache(int cacheSize) {
         this.byteBuffer = ByteBuffer.allocateDirect(cacheSize * MESSAGE_SIZE);
         this.address = ((DirectBuffer) byteBuffer).address();
     }
 
+    /** 向缓存中添加消息 **/
     int addMessage(byte[] msg) {
         long pos = address + numbers[size];
+        //注意！！！！可能每个消息长度不一致，存储时要有一个字节用于存储消息长度
         UNSAFE.putByte(pos, (byte) msg.length);
+        //写入消息
         for (int i = 0; i < msg.length; i++) {
             UNSAFE.putByte(pos + i + 1, msg[i]);
         }
-
-//        byteBuffer.put((byte) msg.length);
-//        byteBuffer.put(msg);
         byteBuffer.position(numbers[++size]);
         return size;
     }
 
-    ByteBuffer getByteBuffer() {
-        /*limit设为当前position,position设为0*/
-        return byteBuffer;
-    }
-
-    void putTerminator() {
-        byteBuffer.put((byte) 0);
-    }
-
-    public byte getSize() {
-        return size;
-    }
-
-    void clear() {
-        /*position设为0，limit设为capacity，回到写模式*/
-        byteBuffer.clear();
-        size = 0;
-    }
-
-    /*ReadQueueCache*/
-
+    /** 从directedbuffer读取消息 **/
     ArrayList<byte[]> getMessage(int start, int end) {
 
         ArrayList<byte[]> msgList = new ArrayList<>();
@@ -92,8 +75,21 @@ class DirectQueueCache {
         return msgList;
     }
 
+    /*position设为0，limit设为capacity，回到写模式*/
+    void clear() {
+        byteBuffer.clear();
+        size = 0;
+    }
     public ByteBuffer getWriteBuffer() {
         byteBuffer.clear();
         return byteBuffer;
+    }
+
+    ByteBuffer getByteBuffer() {
+        return byteBuffer;
+    }
+
+    public byte getSize() {
+        return size;
     }
 }

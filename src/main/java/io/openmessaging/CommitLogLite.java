@@ -25,30 +25,31 @@ import static io.openmessaging.utils.UnsafeUtil.UNSAFE;
  * Time: 下午11:04
  */
 
+/** 消息存储文件类 **/
 public class CommitLogLite {
 
-    /*文件的大小*/
+    /** 文件的大小 **/
     private final int mappedFileSize;
 
-    /*映射的文件名*/
+    /** 映射的文件名 **/
     private static AtomicInteger fileName = new AtomicInteger(0);
 
-    /*映射的内存对象*/
+    /** 映射的内存对象 **/
     private MappedByteBuffer mappedByteBuffer;
 
-    /*映射的fileChannel对象*/
+    /** 映射的fileChannel对象 **/
     private FileChannel fileChannel;
 
-    /*文件尾指针*/
+    /** 文件尾指针 **/
     private AtomicInteger wrotePosition = new AtomicInteger(0);
 
     public CommitLogLite(int mappedFileSize, String storePath) {
         this.mappedFileSize = mappedFileSize;
 
-        /*检查文件夹是否存在*/
+        /** 检查文件夹是否存在 **/
         ensureDirOK(storePath);
 
-        /*打开文件，并将文件映射到内存*/
+        /** 打开文件，并将文件映射到内存 **/
         try {
             File file = new File(storePath + File.separator + fileName.getAndIncrement());
             this.fileChannel = new RandomAccessFile(file, "rw").getChannel();
@@ -61,6 +62,7 @@ public class CommitLogLite {
         }
     }
 
+    /** 检查文件夹是否存在 **/
     public static void ensureDirOK(final String dirName) {
         if (dirName != null) {
             File f = new File(dirName);
@@ -70,11 +72,10 @@ public class CommitLogLite {
         }
     }
 
-    //写一串数据
+    /** 将directedbuffer缓存中数据写入文件 **/
     int putMessage(ByteBuffer byteBuffer) {
-
         byteBuffer.flip();
-        int currentPos = this.wrotePosition.getAndAdd(byteBuffer.limit());
+        int currentPos = this.wrotePosition.getAndAdd(byteBuffer.limit());//避免多线程竞争
         try {
             this.fileChannel.write(byteBuffer, currentPos);
         } catch (IOException e) {
@@ -83,6 +84,8 @@ public class CommitLogLite {
         return currentPos;
     }
 
+    /** 应用于消费阶段，从mappedbuffer使用unsafe方式读取 **/
+    /** offset为物理存储偏移值，start、end为要get的始终 **/
     ArrayList<byte[]> getMessage(int offset, int start, int end) {
 
         ArrayList<byte[]> msgList = new ArrayList<>();
@@ -98,9 +101,7 @@ public class CommitLogLite {
 //            msgList.add(msg);
 //        }
 
-        /** Unsafe **/
-
-
+        /** Unsafe读取 **/
         long pos = ((DirectBuffer) mappedByteBuffer).address() + offset + numbers[start];
         for (int i = start; i < end; i++, pos += MESSAGE_SIZE) {
             byte size = UNSAFE.getByte(pos);
@@ -115,8 +116,9 @@ public class CommitLogLite {
         return msgList;
     }
 
+    /** 应用于索引检查，从文件中读取到directedbuffer **/
+    /** offset为物理存储偏移值，cache为directedbuffer缓存，start、end为要get的始终 **/
     void getMessage(int offset, DirectQueueCache cache, int start, int end) {
-
         try {
             ByteBuffer byteBuffer = cache.getWriteBuffer();
             byteBuffer.position(numbers[start]);

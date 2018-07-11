@@ -28,6 +28,7 @@ public class TopicIdGenerator {
         return generateId(topic);
     }
 
+    /** 根据队列名字生成队列ID作为队列的唯一标识别 **/
     private int generateId(String topicName) {
         int id = 0;
         int k = 0;

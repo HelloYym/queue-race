@@ -10,6 +10,8 @@ import static io.openmessaging.config.MessageStoreConfig.SparseSize;
  * Date: 2018-07-04
  * Time: 下午3:28
  */
+
+/** 存储每个队列的索引 **/
 public class QueueIndex {
 
     private int[] index;
