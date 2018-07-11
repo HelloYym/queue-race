@@ -15,7 +15,7 @@ public class MessageStoreConfig {
     private String storePathCommitLog = "alidata1/race2018/data";
 
     /** 稀疏索引，每存多少个写一个索引 **/
-    public static final int SparseSize = 25;
+    public static final int SparseSize = 20;
 
     /** 因为题目说每个消息大小为50字节左右，我们将每个消息大小设为59，不足59部分为空 **/
     public static final int MESSAGE_SIZE = 59;
@@ -39,7 +39,7 @@ public class MessageStoreConfig {
     private int fileSizeCommitLog = Integer.MAX_VALUE;
 
     /** 存储消息的文件数量 **/
-    public static final int numCommitLog = 56;
+    public static final int numCommitLog = 55;
 
     public int getFileSizeCommitLog() {
         return fileSizeCommitLog;
