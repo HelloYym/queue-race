@@ -3,6 +3,7 @@ package io.openmessaging;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.openmessaging.config.MessageStoreConfig.INDEX_NUM;
 import static io.openmessaging.config.MessageStoreConfig.SparseSize;
 
 /**
@@ -18,11 +19,8 @@ public class QueueIndex {
 
     private int size = 0;
 
-    private int cacheSize;
-
-    public QueueIndex(int cacheSize) {
-        this.cacheSize = cacheSize;
-        index = new int[2100 / cacheSize];
+    public QueueIndex() {
+        index = new int[INDEX_NUM];
     }
 
     public int getSize() {
@@ -34,8 +32,9 @@ public class QueueIndex {
     }
 
     public int getIndex(int offset) {
-        if (offset / cacheSize < size)
-            return index[offset / cacheSize];
+        int off = offset / SparseSize;
+        if (off < size)
+            return index[off];
         else
             return -1;
     }

@@ -29,13 +29,6 @@ public class TopicIdGenerator {
     }
 
     public int getId(String topic) {
-//        if (!topicIdMap.containsKey(topic)) {
-//            int topicId = id.getAndIncrement();
-//            topicIdMap.put(topic, topicId);
-//            return topicId;
-//        } else {
-//            return topicIdMap.get(topic);
-//        }
         return generateId(topic);
     }
 

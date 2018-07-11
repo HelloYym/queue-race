@@ -3,6 +3,8 @@ package io.openmessaging;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.openmessaging.config.MessageStoreConfig.SparseSize;
+
 /**
  * Created with IntelliJ IDEA.
  * Description:
@@ -11,7 +13,7 @@ import java.util.List;
  * Time: 上午10:12
  */
 public class QueueCache {
-    private List<byte[]> msgList = new ArrayList<>();
+    private List<byte[]> msgList = new ArrayList<>(SparseSize);
 
     public QueueCache() {
 

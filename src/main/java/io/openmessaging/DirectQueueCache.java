@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 import static io.openmessaging.config.MessageStoreConfig.MESSAGE_SIZE;
+import static io.openmessaging.config.MessageStoreConfig.numbers;
 import static io.openmessaging.utils.UnsafeUtil.UNSAFE;
 
 
@@ -23,16 +24,13 @@ class DirectQueueCache {
 
     private byte size = 0;
 
-    private int offset = -1;
-
     DirectQueueCache(int cacheSize) {
         this.byteBuffer = ByteBuffer.allocateDirect(cacheSize * MESSAGE_SIZE);
         this.address = ((DirectBuffer) byteBuffer).address();
     }
 
-
     int addMessage(byte[] msg) {
-        long pos = address + size * MESSAGE_SIZE;
+        long pos = address + numbers[size];
         UNSAFE.putByte(pos, (byte) msg.length);
         for (int i = 0; i < msg.length; i++) {
             UNSAFE.putByte(pos + i + 1, msg[i]);
@@ -40,7 +38,7 @@ class DirectQueueCache {
 
 //        byteBuffer.put((byte) msg.length);
 //        byteBuffer.put(msg);
-        byteBuffer.position(++size * MESSAGE_SIZE);
+        byteBuffer.position(numbers[++size]);
         return size;
     }
 
@@ -51,14 +49,6 @@ class DirectQueueCache {
 
     void putTerminator() {
         byteBuffer.put((byte) 0);
-    }
-
-    public int getOffset() {
-        return offset;
-    }
-
-    public void setOffset(int offset) {
-        this.offset = offset;
     }
 
     public byte getSize() {
@@ -88,8 +78,8 @@ class DirectQueueCache {
 
         /** Unsafe **/
 
-        long pos = address + start * MESSAGE_SIZE;
-        for (int i = start; i < end; i++) {
+        long pos = address + numbers[start];
+        for (int i = start; i < end; i++, pos += MESSAGE_SIZE) {
             byte size = UNSAFE.getByte(pos);
             if (size == 0) break;
             byte[] msg = new byte[size];
@@ -97,7 +87,6 @@ class DirectQueueCache {
                 msg[j] = UNSAFE.getByte(pos + j + 1);
             }
             msgList.add(msg);
-            pos += MESSAGE_SIZE;
         }
 
         return msgList;

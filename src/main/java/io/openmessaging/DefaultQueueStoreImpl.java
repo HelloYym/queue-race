@@ -1,15 +1,10 @@
 package io.openmessaging;
 
-import io.openmessaging.common.LoggerName;
 import io.openmessaging.config.MessageStoreConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 
 public class DefaultQueueStoreImpl extends QueueStore {
-
-//    private static final Logger log = LoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
 
     private final MessageStoreConfig messageStoreConfig;
 
@@ -24,11 +19,8 @@ public class DefaultQueueStoreImpl extends QueueStore {
 
     @Override
     void put(String queueName, byte[] message) {
-
         int queueId = idGenerator.getId(queueName);
         messageStore.putMessage(queueId, message);
-
-//        messageStore.putMessage(TopicIdGenerator.getInstance().getId(queueName), message);
     }
 
     @Override
